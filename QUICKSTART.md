@@ -4,6 +4,13 @@
 
 ### Backend Setup
 
+0. Github
+   ```angular2html
+   # Authenticate
+   gh auth login
+   git clone https://github.com/ledgeroflodgers/secret-santa-game.git
+   ```
+   
 1. Navigate to the backend directory:
    ```bash
    cd secret-santa-backend
