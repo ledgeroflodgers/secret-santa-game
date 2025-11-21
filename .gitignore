@@ -11,6 +11,22 @@ ENV/
 dist/
 build/
 
+# Python dependencies installed with pip -t
+secret-santa-backend/boto3/
+secret-santa-backend/boto3-*/
+secret-santa-backend/botocore/
+secret-santa-backend/botocore-*/
+secret-santa-backend/urllib3/
+secret-santa-backend/urllib3-*/
+secret-santa-backend/s3transfer/
+secret-santa-backend/s3transfer-*/
+secret-santa-backend/jmespath/
+secret-santa-backend/jmespath-*/
+secret-santa-backend/dateutil/
+secret-santa-backend/python_dateutil-*/
+secret-santa-backend/six-*/
+secret-santa-backend/six.py
+
 # AWS SAM
 .aws-sam/
 samconfig.toml.bak
