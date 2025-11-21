@@ -1,0 +1,275 @@
+<div class="admin-container">
+  <!-- Password Authentication -->
+  <div *ngIf="!isAuthenticated" class="password-section">
+    <div class="password-card">
+      <h2>Admin Access</h2>
+      <p>Please enter the admin password to continue.</p>
+      
+      <form [formGroup]="passwordForm" (ngSubmit)="checkPassword()" class="password-form">
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input 
+            type="password" 
+            id="password"
+            formControlName="password"
+            class="form-control"
+            placeholder="Enter admin password"
+            [class.error]="passwordError"
+            autofocus>
+          
+          <div *ngIf="passwordError" class="error-message">
+            {{ passwordError }}
+          </div>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="passwordForm.invalid">
+          Access Admin
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Admin Interface (only shown when authenticated) -->
+  <div *ngIf="isAuthenticated">
+    <div class="admin-header">
+      <h1>FX Gift Exchange Admin</h1>
+      <button 
+        type="button" 
+        class="btn btn-refresh"
+        (click)="manualRefresh()"
+        title="Refresh data">
+        🔄 Refresh
+      </button>
+    </div>
+
+    <!-- Error and Success Messages -->
+  <app-error-display
+    *ngIf="error"
+    [error]="error"
+    [retryable]="true"
+    [dismissible]="true"
+    (retry)="retryLoadCurrentTurn()"
+    (dismiss)="dismissError()">
+  </app-error-display>
+  
+  <div *ngIf="successMessage" class="alert alert-success">
+    {{ successMessage }}
+  </div>
+
+  <!-- Current Turn Display -->
+  <div class="current-turn-section">
+    <h2>Current Turn</h2>
+    
+    <app-loading 
+      *ngIf="isCurrentTurnLoading" 
+      message="Loading current turn..." 
+      size="small">
+    </app-loading>
+    
+    <div *ngIf="currentTurn && !isCurrentTurnLoading" class="turn-info">
+      <div *ngIf="currentTurn.current_participant; else noCurrentTurn">
+        <p class="current-player">
+          <strong>Player {{ currentTurn.current_participant.id }}: {{ currentTurn.current_participant.name }}</strong>
+        </p>
+        <p class="game-phase">Game Phase: {{ currentTurn.game_phase | titlecase }}</p>
+        <p class="total-participants">Total Participants: {{ currentTurn.total_participants }}</p>
+      </div>
+      <ng-template #noCurrentTurn>
+        <p class="no-turn">No current turn - Game not started or completed</p>
+        <p class="game-phase">Game Phase: {{ currentTurn.game_phase | titlecase }}</p>
+        <p class="total-participants">Total Participants: {{ currentTurn.total_participants }}</p>
+      </ng-template>
+    </div>
+    
+    <!-- Turn Control Buttons -->
+    <div class="turn-controls">
+      <!-- Start Game Button (only shown when game hasn't started) -->
+      <button 
+        type="button" 
+        class="btn btn-success btn-start-game"
+        (click)="onStartGame()"
+        [disabled]="!canStartGame || isStartingGame"
+        *ngIf="!hasGameStarted"
+        title="Start the game with the first player">
+        <span *ngIf="isStartingGame">Starting Game...</span>
+        <span *ngIf="!isStartingGame">🎮 Start Game</span>
+      </button>
+
+      <!-- Previous/Next Turn Buttons (only shown when game has started) -->
+      <ng-container *ngIf="hasGameStarted">
+        <button 
+          type="button" 
+          class="btn btn-secondary"
+          (click)="onPreviousTurn()"
+          [disabled]="!canGoToPreviousTurn || isGoingToPreviousTurn"
+          title="Go back to previous turn">
+          <span *ngIf="isGoingToPreviousTurn">Going Back...</span>
+          <span *ngIf="!isGoingToPreviousTurn">← Previous Turn</span>
+        </button>
+        
+        <button 
+          type="button" 
+          class="btn btn-primary"
+          (click)="onNextTurn()"
+          [disabled]="!currentTurn || currentTurn.total_participants === 0 || isAdvancingTurn"
+          title="Advance to next turn">
+          <span *ngIf="isAdvancingTurn">Advancing...</span>
+          <span *ngIf="!isAdvancingTurn">Next Turn →</span>
+        </button>
+      </ng-container>
+    </div>
+  </div>
+
+  <!-- Gift Input Form -->
+  <div class="gift-form-section">
+    <h2>Add New Gift</h2>
+    <form [formGroup]="giftForm" (ngSubmit)="onSubmitGift()">
+      <div class="form-group">
+        <label for="giftName">Gift Name:</label>
+        <input 
+          type="text" 
+          id="giftName"
+          formControlName="name"
+          class="form-control"
+          placeholder="Enter gift name"
+          [class.error]="giftForm.get('name')?.invalid && giftForm.get('name')?.touched">
+        
+        <div *ngIf="giftForm.get('name')?.invalid && giftForm.get('name')?.touched" class="field-error">
+          <span *ngIf="giftForm.get('name')?.errors?.['required']">Gift name is required</span>
+          <span *ngIf="giftForm.get('name')?.errors?.['minlength']">Gift name must be at least 1 character</span>
+          <span *ngIf="giftForm.get('name')?.errors?.['maxlength']">Gift name must be less than 100 characters</span>
+        </div>
+      </div>
+      
+      <button 
+        type="submit" 
+        class="btn btn-success"
+        [disabled]="giftForm.invalid || loading">
+        <span *ngIf="loading">Adding...</span>
+        <span *ngIf="!loading">Add Gift</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Gifts List -->
+  <div class="gifts-section">
+    <h2>Gifts Pool</h2>
+    
+    <app-loading 
+      *ngIf="isGiftsLoading" 
+      message="Loading gifts..." 
+      size="small">
+    </app-loading>
+    
+    <div *ngIf="gifts.length === 0 && !isGiftsLoading" class="no-gifts">
+      No gifts added yet.
+    </div>
+    
+    <div *ngIf="gifts.length > 0 && !isGiftsLoading" class="gifts-list">
+      <div 
+        *ngFor="let gift of gifts" 
+        class="gift-item"
+        [class.locked]="gift.is_locked"
+        [class.stealable]="canStealGift(gift)"
+        [class.editing]="isEditingGift(gift.id)">
+        
+        <div class="gift-info">
+          <!-- Display Mode -->
+          <div *ngIf="!isEditingGift(gift.id)" class="gift-display">
+            <span class="gift-name" 
+                  [class.clickable]="canStealGift(gift)"
+                  [title]="getGiftTooltip(gift)"
+                  (click)="canStealGift(gift) ? onStealGift(gift) : null">
+              {{ gift.name }}
+            </span>
+            <button 
+              type="button"
+              class="btn btn-edit"
+              (click)="startEditGift(gift)"
+              [disabled]="editingGiftId !== null"
+              title="Edit gift name">
+              ✏️ Edit
+            </button>
+          </div>
+          
+          <!-- Edit Mode -->
+          <div *ngIf="isEditingGift(gift.id)" class="gift-edit">
+            <input 
+              type="text" 
+              [(ngModel)]="editGiftName"
+              class="gift-name-input"
+              [class.error]="editGiftError"
+              (keyup.enter)="saveEditGift(gift.id)"
+              (keyup.escape)="cancelEditGift()"
+              placeholder="Enter gift name"
+              autofocus>
+            <button 
+              type="button"
+              class="btn btn-save"
+              (click)="saveEditGift(gift.id)"
+              [disabled]="isUpdatingGiftName(gift.id)"
+              title="Save changes">
+              <span *ngIf="isUpdatingGiftName(gift.id)">Saving...</span>
+              <span *ngIf="!isUpdatingGiftName(gift.id)">💾 Save</span>
+            </button>
+            <button 
+              type="button"
+              class="btn btn-cancel"
+              (click)="cancelEditGift()"
+              [disabled]="isUpdatingGiftName(gift.id)"
+              title="Cancel editing">
+              ✖ Cancel
+            </button>
+          </div>
+          
+          <!-- Error message display -->
+          <div *ngIf="isEditingGift(gift.id) && editGiftError" class="edit-error">
+            {{ editGiftError }}
+          </div>
+          
+          <span class="gift-owner" *ngIf="gift.current_owner">
+            Owner: {{ getParticipantName(gift.current_owner) }}
+          </span>
+        </div>
+        
+        <div class="gift-status">
+          <div class="strikes-container">
+            <div class="strikes" [ngClass]="getStrikeCssClass(gift)">
+              <span *ngIf="!gift.is_locked">{{ getStrikeDisplay(gift) }}</span>
+              <span *ngIf="gift.is_locked" class="locked">LOCKED</span>
+            </div>
+            
+            <!-- Visual strike indicators -->
+            <div class="strike-indicators" *ngIf="!gift.is_locked">
+              <div 
+                *ngFor="let filled of getStrikeIndicators(gift); let i = index"
+                class="strike-dot"
+                [class.empty]="!filled"
+                [title]="'Strike ' + (i + 1) + (filled ? ' - Used' : ' - Available')">
+              </div>
+            </div>
+          </div>
+          
+          <span class="steal-count">{{ getStrikeCountText(gift) }}</span>
+        </div>
+        
+        <!-- Admin Controls -->
+        <div class="gift-admin-controls" *ngIf="gift.steal_count > 0">
+          <button 
+            type="button"
+            class="btn btn-admin btn-reset"
+            (click)="onResetGiftSteals(gift)"
+            [disabled]="isResettingGift(gift.id)"
+            [title]="gift.is_locked ? 'Reset steal count to 0 and unlock - allows gift to be stolen again' : 'Reset steal count to 0'">
+            <span *ngIf="isResettingGift(gift.id)">Resetting...</span>
+            <span *ngIf="!isResettingGift(gift.id)">🔄 Reset ({{ gift.steal_count }})</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+</div>

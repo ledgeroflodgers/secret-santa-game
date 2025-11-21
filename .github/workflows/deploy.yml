@@ -1,0 +1,219 @@
+name: Deploy Secret Santa Game
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - staging
+          - prod
+
+env:
+  AWS_REGION: us-east-1
+  DATA_BUCKET_NAME: secret-santa-game-data
+
+jobs:
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    outputs:
+      api-url: ${{ steps.get-api-url.outputs.api_url }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Set up AWS SAM
+        uses: aws-actions/setup-sam@v2
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Install dependencies
+        run: |
+          cd secret-santa-backend
+          pip install -r requirements.txt -t .
+          pip install boto3 -t .
+      
+      - name: Build SAM application
+        run: |
+          cd secret-santa-backend
+          sam build --template-file template.yaml
+      
+      - name: Deploy to AWS
+        run: |
+          cd secret-santa-backend
+          sam deploy \
+            --stack-name "secret-santa-backend-${{ steps.env.outputs.environment }}" \
+            --parameter-overrides \
+              Environment="${{ steps.env.outputs.environment }}" \
+              DataBucketName="${{ env.DATA_BUCKET_NAME }}" \
+            --capabilities CAPABILITY_IAM \
+            --resolve-s3 \
+            --no-fail-on-empty-changeset \
+            --no-confirm-changeset
+      
+      - name: Get API URL
+        id: get-api-url
+        run: |
+          API_URL=$(aws cloudformation describe-stacks \
+            --stack-name "secret-santa-backend-${{ steps.env.outputs.environment }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiUrl'].OutputValue" \
+            --output text)
+          echo "api_url=${API_URL}" >> $GITHUB_OUTPUT
+          echo "API URL: ${API_URL}"
+
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    needs: deploy-backend
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: secret-santa-frontend/package-lock.json
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Get S3 bucket name
+        id: get-bucket
+        run: |
+          BUCKET_NAME=$(aws cloudformation describe-stacks \
+            --stack-name "secret-santa-backend-${{ steps.env.outputs.environment }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendBucketName'].OutputValue" \
+            --output text)
+          echo "bucket_name=${BUCKET_NAME}" >> $GITHUB_OUTPUT
+      
+      - name: Install dependencies
+        run: |
+          cd secret-santa-frontend
+          npm ci
+      
+      - name: Update environment configuration
+        run: |
+          cd secret-santa-frontend
+          sed "s|\${API_URL}|${{ needs.deploy-backend.outputs.api-url }}|g" \
+            src/environments/environment.prod.ts > \
+            src/environments/environment.prod.tmp.ts
+          mv src/environments/environment.prod.tmp.ts src/environments/environment.prod.ts
+      
+      - name: Build Angular application
+        run: |
+          cd secret-santa-frontend
+          npm run build -- --configuration production
+      
+      - name: Deploy to S3
+        run: |
+          aws s3 sync secret-santa-frontend/dist/secret-santa-frontend/ \
+            s3://${{ steps.get-bucket.outputs.bucket_name }}/ \
+            --delete
+      
+      - name: Set cache headers
+        run: |
+          # No cache for index.html
+          aws s3 cp s3://${{ steps.get-bucket.outputs.bucket_name }}/index.html \
+            s3://${{ steps.get-bucket.outputs.bucket_name }}/index.html \
+            --metadata-directive REPLACE \
+            --cache-control "no-cache, no-store, must-revalidate" \
+            --content-type "text/html"
+      
+      - name: Get website URL
+        id: get-url
+        run: |
+          WEBSITE_URL=$(aws cloudformation describe-stacks \
+            --stack-name "secret-santa-backend-${{ steps.env.outputs.environment }}" \
+            --query "Stacks[0].Outputs[?OutputKey=='FrontendUrl'].OutputValue" \
+            --output text)
+          echo "website_url=${WEBSITE_URL}" >> $GITHUB_OUTPUT
+          echo "Website URL: ${WEBSITE_URL}"
+      
+      - name: Deployment summary
+        run: |
+          echo "## Deployment Complete! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Environment:** ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "**API URL:** ${{ needs.deploy-backend.outputs.api-url }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Website URL:** ${{ steps.get-url.outputs.website_url }}" >> $GITHUB_STEP_SUMMARY
+
+  test-deployment:
+    name: Test Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+      
+      - name: Determine environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "environment=${{ github.event.inputs.environment }}" >> $GITHUB_OUTPUT
+          elif [ "${{ github.ref }}" == "refs/heads/main" ]; then
+            echo "environment=prod" >> $GITHUB_OUTPUT
+          else
+            echo "environment=dev" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Run deployment tests
+        run: |
+          chmod +x test-deployment.sh
+          ./test-deployment.sh ${{ steps.env.outputs.environment }} ${{ needs.deploy-backend.outputs.api-url }}

@@ -1,0 +1,18 @@
+<div class="app-container">
+  <header class="app-header" *ngIf="showHeader">
+    <h1>
+      <a href="https://fxgift.short.gy" target="_blank" class="fancy-link">
+        fxgift.short.gy
+      </a>
+    </h1>
+    <app-navigation></app-navigation>
+  </header>
+
+  <main class="app-main" [class.no-header]="!showHeader">
+    <router-outlet></router-outlet>
+  </main>
+
+  <footer class="app-footer">
+    <p>&copy; 2025 FX Holiday Gift Exchange</p>
+  </footer>
+</div>

@@ -1,0 +1,20 @@
+<nav class="navigation">
+  <div class="nav-brand">
+    <h2>{{ currentPageTitle$ | async }}</h2>
+  </div>
+  
+  <div class="nav-links">
+    <a 
+      *ngFor="let item of navigationItems" 
+      [routerLink]="item.path" 
+      routerLinkActive="active" 
+      [routerLinkActiveOptions]="{exact: item.path === '/'}"
+      class="nav-link"
+      [class.admin-link]="item.requiresAdmin"
+      (click)="onNavigate(item.path)"
+    >
+      <span class="nav-icon" *ngIf="item.icon">{{ item.icon }}</span>
+      <span class="nav-label">{{ item.label }}</span>
+    </a>
+  </div>
+</nav>

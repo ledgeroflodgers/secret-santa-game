@@ -1,0 +1,226 @@
+.nuclear-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+/* Password Section */
+.password-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh;
+}
+
+.password-card {
+  background: white;
+  border: 3px solid #ff4444;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(255, 68, 68, 0.2);
+  max-width: 400px;
+  width: 100%;
+}
+
+.password-card h2 {
+  color: #ff4444;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.warning-text {
+  color: #666;
+  text-align: center;
+  margin-bottom: 1.5rem;
+}
+
+.password-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group label {
+  font-weight: 600;
+  color: #333;
+}
+
+.form-control {
+  padding: 0.75rem;
+  border: 2px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  outline: none;
+  border-color: #ff4444;
+}
+
+.form-control.error {
+  border-color: #ff4444;
+}
+
+.error-message {
+  color: #ff4444;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+/* Nuclear Interface */
+.nuclear-interface {
+  padding: 2rem 0;
+}
+
+.nuclear-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #ff4444 0%, #cc0000 100%);
+  color: white;
+  border-radius: 8px;
+}
+
+.nuclear-header h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+}
+
+.danger-warning {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+/* Alerts */
+.alert {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+.alert-success {
+  background: #d4edda;
+  color: #155724;
+  border: 2px solid #28a745;
+}
+
+.alert-error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 2px solid #dc3545;
+}
+
+/* Reset Section */
+.reset-section {
+  display: flex;
+  justify-content: center;
+}
+
+.reset-card {
+  background: white;
+  border: 3px solid #ff4444;
+  border-radius: 8px;
+  padding: 2rem;
+  box-shadow: 0 4px 6px rgba(255, 68, 68, 0.2);
+  max-width: 500px;
+  width: 100%;
+}
+
+.reset-card h2 {
+  color: #ff4444;
+  margin-bottom: 1rem;
+  text-align: center;
+}
+
+.reset-description {
+  color: #333;
+  margin-bottom: 1rem;
+  font-weight: 600;
+}
+
+.reset-list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0;
+}
+
+.reset-list li {
+  padding: 0.5rem;
+  margin: 0.5rem 0;
+  background: #fff3cd;
+  border-left: 4px solid #ff4444;
+  color: #333;
+}
+
+.reset-warning {
+  background: #fff3cd;
+  border: 2px solid #ffc107;
+  padding: 1rem;
+  border-radius: 4px;
+  color: #856404;
+  font-weight: 600;
+  text-align: center;
+  margin: 1.5rem 0;
+}
+
+/* Buttons */
+.btn {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #ff4444;
+  color: white;
+  width: 100%;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #cc0000;
+}
+
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
+  transform: scale(1.02);
+}
+
+.btn-nuclear {
+  width: 100%;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  margin-top: 1rem;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(220, 53, 69, 0.7);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(220, 53, 69, 0);
+  }
+}

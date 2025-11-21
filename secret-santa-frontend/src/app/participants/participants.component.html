@@ -1,0 +1,63 @@
+<div class="participants-container">
+  <div class="header">
+    <h2>Registered Participants</h2>
+    <button 
+      class="refresh-btn" 
+      (click)="refreshParticipants()" 
+      [disabled]="loading"
+      title="Refresh participant list">
+      🔄 Refresh
+    </button>
+  </div>
+
+  <!-- Loading state -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Loading participants...</p>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="error && !loading" class="error">
+    <p>{{ error }}</p>
+    <button (click)="refreshParticipants()" class="retry-btn">Try Again</button>
+  </div>
+
+  <!-- Participants list -->
+  <div *ngIf="!loading && !error" class="participants-content">
+    <!-- Empty state -->
+    <div *ngIf="participants.length === 0" class="empty-state">
+      <p>No participants registered yet.</p>
+      <p>Be the first to <a routerLink="/register">register</a>!</p>
+    </div>
+
+    <!-- Participants compact grid -->
+    <div *ngIf="participants.length > 0" class="participants-grid">
+      <div class="participants-header">
+        <h3>🎄 {{ participants.length }} Gift Exchanger{{ participants.length === 1 ? '' : 's' }} Ready! 🎁</h3>
+        <p class="auto-refresh-info">✨ Updates every 5 seconds</p>
+      </div>
+
+      <div class="participants-compact-grid">
+        <div 
+          *ngFor="let participant of participants; trackBy: trackByParticipantId" 
+          class="participant-badge"
+          [title]="'Registered: ' + getFormattedTime(participant.registration_timestamp)">
+          <div class="badge-number">{{ participant.id }}</div>
+          <div class="badge-name">{{ participant.name }}</div>
+        </div>
+      </div>
+
+      <!-- Statistics footer -->
+      <div class="participants-stats">
+        <div class="stat-item">
+          <span class="stat-icon">👥</span>
+          <span class="stat-text">{{ participants.length }}/100 Participants</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-icon">🎯</span>
+          <span class="stat-text">{{ 100 - participants.length }} Spots Left</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

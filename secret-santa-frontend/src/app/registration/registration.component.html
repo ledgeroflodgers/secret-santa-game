@@ -1,0 +1,69 @@
+<div class="registration-container">
+  <div class="registration-card">
+    <!-- Participant Count Display -->
+    <div class="participant-count">
+      <app-loading 
+        *ngIf="isCountLoading" 
+        message="Loading participant count..." 
+        size="small">
+      </app-loading>
+      <p *ngIf="!isCountLoading">Participants registered: <strong>{{ participantCount }}/100</strong></p>
+    </div>
+
+    <!-- Capacity Warning -->
+    <div *ngIf="isAtCapacity" class="alert alert-warning">
+      <strong>Registration Full!</strong> The maximum number of participants (100) has been reached.
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="registrationSuccess && successMessage" class="alert alert-success">
+      <strong>Success!</strong> {{ successMessage }}
+      <button type="button" class="btn btn-link" (click)="resetForm()">Register Another Participant</button>
+    </div>
+
+    <!-- Error Message -->
+    <app-error-display
+      *ngIf="errorMessage"
+      [error]="errorMessage"
+      [retryable]="retryableError"
+      [dismissible]="true"
+      (retry)="retryRegistration()"
+      (dismiss)="dismissError()">
+    </app-error-display>
+
+    <!-- Registration Form -->
+    <form *ngIf="!registrationSuccess && !isAtCapacity" [formGroup]="registrationForm" (ngSubmit)="onSubmit()" class="registration-form">
+      <div class="form-group">
+        <label for="name">Your Name:</label>
+        <input 
+          type="text" 
+          id="name" 
+          formControlName="name" 
+          class="form-control"
+          [class.invalid]="nameControl?.invalid && nameControl?.touched"
+          placeholder="Enter your full name"
+          maxlength="50"
+        >
+        <div *ngIf="nameControl?.invalid && nameControl?.touched" class="error-message">
+          {{ getNameErrorMessage() }}
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="registrationForm.invalid || isSubmitting || isRegistrationLoading"
+        >
+          {{ (isSubmitting || isRegistrationLoading) ? 'Registering...' : 'Register for FX Gift Exchange' }}
+        </button>
+        
+        <app-loading 
+          *ngIf="isRegistrationLoading" 
+          message="Registering participant..." 
+          size="small">
+        </app-loading>
+      </div>
+    </form>
+  </div>
+</div>

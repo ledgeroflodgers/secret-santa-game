@@ -1,0 +1,80 @@
+<div class="nuclear-container">
+  <!-- Password Authentication -->
+  <div *ngIf="!isAuthenticated" class="password-section">
+    <div class="password-card">
+      <h2>⚠️ Reset Access</h2>
+      <p class="warning-text">This area is restricted. Enter password to continue.</p>
+      
+      <form [formGroup]="passwordForm" (ngSubmit)="checkPassword()" class="password-form">
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input 
+            type="password" 
+            id="password"
+            formControlName="password"
+            class="form-control"
+            placeholder="Enter password"
+            [class.error]="passwordError"
+            autofocus>
+          
+          <div *ngIf="passwordError" class="error-message">
+            {{ passwordError }}
+          </div>
+        </div>
+        
+        <button 
+          type="submit" 
+          class="btn btn-primary"
+          [disabled]="passwordForm.invalid">
+          Access Controls
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reset Interface -->
+  <div *ngIf="isAuthenticated" class="nuclear-interface">
+    <div class="nuclear-header">
+      <h1>☢️ Reset</h1>
+      <p class="danger-warning">DANGER ZONE - All actions here are irreversible</p>
+    </div>
+
+    <!-- Success Message -->
+    <div *ngIf="resetSuccess" class="alert alert-success">
+      ✅ All data has been successfully reset. The database is now empty.
+    </div>
+
+    <!-- Error Message -->
+    <div *ngIf="resetError" class="alert alert-error">
+      ❌ {{ resetError }}
+    </div>
+
+    <!-- Reset Button -->
+    <div class="reset-section">
+      <div class="reset-card">
+        <h2>Reset All Data</h2>
+        <p class="reset-description">
+          This will permanently delete:
+        </p>
+        <ul class="reset-list">
+          <li>All participants</li>
+          <li>All gifts</li>
+          <li>Game state and turn order</li>
+          <li>All game history</li>
+        </ul>
+        <p class="reset-warning">
+          ⚠️ This action cannot be undone. All data will be lost forever.
+        </p>
+        
+        <button 
+          type="button"
+          class="btn btn-danger btn-nuclear"
+          (click)="resetAllData()"
+          [disabled]="isResetting">
+          <span *ngIf="!isResetting">☢️ RESET ALL DATA</span>
+          <span *ngIf="isResetting">Resetting...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

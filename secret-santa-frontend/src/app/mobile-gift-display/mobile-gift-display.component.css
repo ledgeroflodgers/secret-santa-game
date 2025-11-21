@@ -1,0 +1,679 @@
+/* Mobile Gift Display Component Styles */
+
+.mobile-gift-display {
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background-color: #f5f5f5;
+}
+
+/* Loading State */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background-color: #fafafa;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  z-index: 2;
+  position: relative;
+}
+
+.loading-spinner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-ring {
+  width: 48px;
+  height: 48px;
+  border: 4px solid #e0e0e0;
+  border-top: 4px solid #2196F3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-message {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #424242;
+  text-align: center;
+  margin: 0;
+}
+
+.loading-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #757575;
+  text-align: center;
+  margin: 0;
+}
+
+/* Skeleton UI for better perceived performance */
+.skeleton-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  gap: 2px;
+  opacity: 0.3;
+  z-index: 1;
+}
+
+.skeleton-item {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: skeleton-loading 1.5s infinite;
+  border-radius: 4px;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* Error State */
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background-color: #ffebee;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.error-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 400px;
+  text-align: center;
+}
+
+.error-icon {
+  color: #c62828;
+  opacity: 0.8;
+}
+
+.error-message {
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #c62828;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.network-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: #757575;
+  font-weight: 500;
+}
+
+.status-indicator {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-indicator.online {
+  background-color: #4CAF50;
+  box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+}
+
+.status-indicator.offline {
+  background-color: #F44336;
+  box-shadow: 0 0 4px rgba(244, 67, 54, 0.5);
+}
+
+.error-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.retry-button {
+  background-color: #2196F3;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 120px;
+  justify-content: center;
+}
+
+.retry-button:hover {
+  background-color: #1976D2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(33, 150, 243, 0.3);
+}
+
+.retry-button:active {
+  background-color: #1565C0;
+  transform: translateY(0);
+}
+
+.retry-button:disabled {
+  background-color: #BDBDBD;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.button-icon {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.offline-message {
+  font-size: 0.9rem;
+  color: #757575;
+  font-style: italic;
+}
+
+/* Empty State */
+.empty-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background-color: #f9f9f9;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  max-width: 350px;
+  text-align: center;
+}
+
+.empty-icon {
+  color: #9E9E9E;
+  opacity: 0.7;
+}
+
+.empty-message {
+  font-size: 1.3rem;
+  font-weight: 500;
+  color: #757575;
+  text-align: center;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.empty-subtitle {
+  font-size: 1rem;
+  font-weight: 400;
+  color: #9E9E9E;
+  text-align: center;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.connection-status {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: #4CAF50;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  background-color: rgba(76, 175, 80, 0.1);
+  border-radius: 20px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+/* Gift Grid - Dynamic responsive grid system */
+.gift-grid {
+  display: grid;
+  height: 100vh;
+  width: 100vw;
+  margin: 0;
+  padding: 0;
+  gap: 0;
+  /* Grid layout is dynamically set via Angular binding */
+  /* Default fallback values */
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  
+  /* CSS variables for dynamic configuration */
+  --grid-columns: 1;
+  --grid-rows: 1;
+  --cell-padding: 0.5rem;
+  --border-width: 1px;
+  
+  /* Advanced responsive typography variables */
+  --base-font-size: clamp(0.75rem, 2.5vw + 0.5rem, 3rem);
+  --min-font-size: 0.6rem;
+  --max-font-size: 3.5rem;
+  --font-scale-factor: 4vmin;
+}
+
+.gift-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 600;
+  word-wrap: break-word;
+  hyphens: auto;
+  overflow-wrap: break-word;
+  padding: var(--cell-padding);
+  border: var(--border-width) solid rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+  
+  /* Advanced responsive typography with multiple viewport units */
+  font-size: clamp(
+    var(--min-font-size), 
+    calc(var(--font-scale-factor) + 0.5vw + 0.5vh), 
+    var(--max-font-size)
+  );
+  line-height: clamp(1.1, 1.2 + 0.1vmin, 1.4);
+  
+  /* Dynamic letter spacing for better readability */
+  letter-spacing: clamp(-0.02em, 0.01vw, 0.05em);
+  
+  /* Smooth transitions for dynamic changes */
+  transition: background-color 0.3s ease, color 0.3s ease, font-size 0.2s ease;
+}
+
+/* Responsive grid system - Small screens (phones) */
+@media screen and (max-width: 480px) {
+  .gift-grid {
+    --cell-padding: 0.25rem;
+    --border-width: 0.5px;
+    --min-font-size: 0.5rem;
+    --max-font-size: 2rem;
+    --font-scale-factor: 3.5vmin;
+  }
+  
+  .gift-item {
+    font-size: clamp(
+      var(--min-font-size), 
+      calc(var(--font-scale-factor) + 0.3vw + 0.3vh), 
+      var(--max-font-size)
+    );
+    padding: var(--cell-padding);
+    /* Tighter line height for small screens */
+    line-height: clamp(1.0, 1.1 + 0.05vmin, 1.3);
+  }
+  
+  .loading-message,
+  .empty-message {
+    font-size: clamp(1rem, 4vw, 1.4rem);
+  }
+  
+  .error-message {
+    font-size: clamp(0.875rem, 3.5vw, 1.2rem);
+  }
+  
+  .loading-container,
+  .error-container,
+  .empty-container {
+    padding: 1rem;
+  }
+  
+  .spinner-ring {
+    width: 36px;
+    height: 36px;
+    border-width: 3px;
+  }
+  
+  .error-icon svg,
+  .empty-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(3, 1fr);
+  }
+}
+
+/* Medium screens (tablets) */
+@media screen and (min-width: 481px) and (max-width: 768px) {
+  .gift-grid {
+    --cell-padding: 0.4rem;
+    --min-font-size: 0.7rem;
+    --max-font-size: 2.5rem;
+    --font-scale-factor: 4.2vmin;
+  }
+  
+  .gift-item {
+    font-size: clamp(
+      var(--min-font-size), 
+      calc(var(--font-scale-factor) + 0.4vw + 0.4vh), 
+      var(--max-font-size)
+    );
+    /* Optimal line height for tablets */
+    line-height: clamp(1.1, 1.15 + 0.08vmin, 1.35);
+  }
+}
+
+/* Large screens (desktops) */
+@media screen and (min-width: 769px) {
+  .gift-grid {
+    --cell-padding: 0.6rem;
+    --min-font-size: 0.9rem;
+    --max-font-size: 3.5rem;
+    --font-scale-factor: 4.8vmin;
+  }
+  
+  .gift-item {
+    font-size: clamp(
+      var(--min-font-size), 
+      calc(var(--font-scale-factor) + 0.5vw + 0.5vh), 
+      var(--max-font-size)
+    );
+    /* Comfortable line height for larger screens */
+    line-height: clamp(1.15, 1.2 + 0.1vmin, 1.4);
+  }
+}
+
+/* Orientation-specific optimizations */
+@media screen and (orientation: landscape) {
+  .gift-grid {
+    --font-scale-factor: calc(3.8vmin + 0.2vw);
+  }
+  
+  .gift-item {
+    /* Optimize for wider screens with adjusted scaling */
+    font-size: clamp(
+      calc(var(--min-font-size) * 0.9), 
+      calc(var(--font-scale-factor) + 0.3vw + 0.2vh), 
+      calc(var(--max-font-size) * 0.85)
+    );
+    padding: calc(var(--cell-padding) * 0.8) var(--cell-padding);
+    /* Slightly tighter line height for landscape */
+    line-height: clamp(1.05, 1.15 + 0.05vmin, 1.3);
+  }
+  
+  /* Adjust for very wide screens (ultra-wide monitors) */
+  @media (min-aspect-ratio: 2/1) {
+    .gift-grid {
+      --font-scale-factor: calc(3.2vmin + 0.15vw);
+    }
+    
+    .gift-item {
+      font-size: clamp(
+        calc(var(--min-font-size) * 0.8), 
+        calc(var(--font-scale-factor) + 0.2vw + 0.1vh), 
+        calc(var(--max-font-size) * 0.7)
+      );
+    }
+  }
+}
+
+@media screen and (orientation: portrait) {
+  .gift-grid {
+    --font-scale-factor: calc(4.2vmin + 0.3vh);
+  }
+  
+  .gift-item {
+    /* Optimize for taller screens with vertical emphasis */
+    font-size: clamp(
+      var(--min-font-size), 
+      calc(var(--font-scale-factor) + 0.2vw + 0.4vh), 
+      var(--max-font-size)
+    );
+    padding: var(--cell-padding) calc(var(--cell-padding) * 0.8);
+    /* More generous line height for portrait */
+    line-height: clamp(1.1, 1.2 + 0.08vmin, 1.4);
+  }
+  
+  /* Adjust for very tall screens (tall phones) */
+  @media (max-aspect-ratio: 1/2) {
+    .gift-grid {
+      --font-scale-factor: calc(3.8vmin + 0.25vh);
+    }
+    
+    .gift-item {
+      font-size: clamp(
+        calc(var(--min-font-size) * 0.9), 
+        calc(var(--font-scale-factor) + 0.15vw + 0.3vh), 
+        calc(var(--max-font-size) * 0.85)
+      );
+    }
+  }
+}
+
+/* High DPI displays - Enhanced typography for crisp rendering */
+@media screen and (-webkit-min-device-pixel-ratio: 2), 
+       screen and (min-resolution: 192dpi) {
+  .gift-grid {
+    --border-width: 0.5px;
+  }
+  
+  .gift-item {
+    /* Slightly larger fonts on high DPI for better readability */
+    font-size: clamp(
+      calc(var(--min-font-size) * 1.05), 
+      calc(var(--font-scale-factor) + 0.1vw + 0.1vh), 
+      calc(var(--max-font-size) * 1.02)
+    );
+    /* Enhanced text rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+/* Ultra-small screens (very small phones) */
+@media screen and (max-width: 320px) {
+  .gift-grid {
+    --min-font-size: 0.4rem;
+    --max-font-size: 1.5rem;
+    --font-scale-factor: 3vmin;
+    --cell-padding: 0.15rem;
+  }
+  
+  .gift-item {
+    font-size: clamp(
+      var(--min-font-size), 
+      calc(var(--font-scale-factor) + 0.2vw + 0.2vh), 
+      var(--max-font-size)
+    );
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Ultra-large screens (large desktops/TVs) */
+@media screen and (min-width: 1200px) {
+  .gift-grid {
+    --min-font-size: 1.2rem;
+    --max-font-size: 4rem;
+    --font-scale-factor: 5.2vmin;
+  }
+  
+  .gift-item {
+    font-size: clamp(
+      var(--min-font-size), 
+      calc(var(--font-scale-factor) + 0.6vw + 0.6vh), 
+      var(--max-font-size)
+    );
+    line-height: clamp(1.2, 1.25 + 0.1vmin, 1.45);
+  }
+}
+
+/* Accessibility - Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .gift-item {
+    transition: none;
+  }
+  
+  .spinner-ring {
+    animation: none;
+    border-top-color: #2196F3;
+  }
+  
+  .skeleton-item {
+    animation: none;
+    background: #e0e0e0;
+  }
+  
+  .retry-button:hover {
+    transform: none;
+  }
+}
+
+/* Focus management for accessibility */
+.loading-container:focus,
+.error-container:focus,
+.empty-container:focus {
+  outline: 2px solid #2196F3;
+  outline-offset: 4px;
+}
+
+/* Screen reader only content */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Gift Status Color Classes */
+.gift-status-fresh {
+  background-color: #4CAF50 !important; /* Green background */
+  color: #424242 !important; /* Dark grey text */
+}
+
+.gift-status-stolen-once {
+  background-color: #FFEB3B !important; /* Yellow background */
+  color: #424242 !important; /* Dark grey text */
+}
+
+.gift-status-stolen-twice {
+  background-color: #F44336 !important; /* Red background */
+  color: #424242 !important; /* Dark grey text */
+}
+
+.gift-status-locked {
+  background-color: #9E9E9E !important; /* Grey background */
+  color: #FFFFFF !important; /* White text */
+}
+
+/* Enhanced transitions for smooth color changes */
+.gift-item {
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              color 0.4s cubic-bezier(0.4, 0, 0.2, 1), 
+              font-size 0.2s ease,
+              transform 0.2s ease;
+}
+
+/* Subtle hover effect for better visual feedback */
+.gift-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Ensure text remains readable during transitions */
+.gift-item {
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .gift-status-fresh {
+    background-color: #2E7D32 !important; /* Darker green for better contrast */
+    color: #FFFFFF !important; /* White text for high contrast */
+  }
+  
+  .gift-status-stolen-once {
+    background-color: #F57F17 !important; /* Darker yellow for better contrast */
+    color: #000000 !important; /* Black text for high contrast */
+  }
+  
+  .gift-status-stolen-twice {
+    background-color: #C62828 !important; /* Darker red for better contrast */
+    color: #FFFFFF !important; /* White text for high contrast */
+  }
+  
+  .gift-status-locked {
+    background-color: #424242 !important; /* Darker grey for better contrast */
+    color: #FFFFFF !important; /* White text remains */
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .mobile-gift-display {
+    background-color: #121212;
+  }
+  
+  .gift-item {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .loading-message,
+  .empty-message {
+    color: #e0e0e0;
+  }
+  
+  /* Adjust gift status colors for dark mode */
+  .gift-status-fresh {
+    background-color: #388E3C !important; /* Slightly darker green for dark mode */
+  }
+  
+  .gift-status-stolen-once {
+    background-color: #FBC02D !important; /* Slightly darker yellow for dark mode */
+  }
+  
+  .gift-status-stolen-twice {
+    background-color: #D32F2F !important; /* Slightly darker red for dark mode */
+  }
+  
+  .gift-status-locked {
+    background-color: #616161 !important; /* Lighter grey for dark mode */
+  }
+}

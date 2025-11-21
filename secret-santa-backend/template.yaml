@@ -1,0 +1,233 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Secret Santa Game Backend - Serverless Application
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+  
+  DataBucketName:
+    Type: String
+    Description: S3 bucket name for storing game data (must be globally unique)
+    Default: secret-santa-game-data
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 512
+    Runtime: python3.11
+    Environment:
+      Variables:
+        ENVIRONMENT: !Ref Environment
+        DATA_BUCKET: !Ref DataBucket
+
+Resources:
+  # S3 Bucket for data persistence
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${DataBucketName}-${Environment}-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+  # Lambda Function
+  SecretSantaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub 'secret-santa-api-${Environment}'
+      CodeUri: .
+      Handler: lambda_handler.lambda_handler
+      Description: Secret Santa Game API
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DataBucket
+      Events:
+        # Health check
+        HealthCheck:
+          Type: Api
+          Properties:
+            Path: /api/health
+            Method: GET
+            RestApiId: !Ref SecretSantaApi
+        
+        # Participant endpoints
+        RegisterParticipant:
+          Type: Api
+          Properties:
+            Path: /api/participants
+            Method: POST
+            RestApiId: !Ref SecretSantaApi
+        
+        GetParticipants:
+          Type: Api
+          Properties:
+            Path: /api/participants
+            Method: GET
+            RestApiId: !Ref SecretSantaApi
+        
+        GetParticipantCount:
+          Type: Api
+          Properties:
+            Path: /api/participants/count
+            Method: GET
+            RestApiId: !Ref SecretSantaApi
+        
+        # Gift endpoints
+        AddGift:
+          Type: Api
+          Properties:
+            Path: /api/gifts
+            Method: POST
+            RestApiId: !Ref SecretSantaApi
+        
+        GetGifts:
+          Type: Api
+          Properties:
+            Path: /api/gifts
+            Method: GET
+            RestApiId: !Ref SecretSantaApi
+        
+        StealGift:
+          Type: Api
+          Properties:
+            Path: /api/gifts/{gift_id}/steal
+            Method: PUT
+            RestApiId: !Ref SecretSantaApi
+        
+        ResetGiftSteals:
+          Type: Api
+          Properties:
+            Path: /api/gifts/{gift_id}/reset-steals
+            Method: PUT
+            RestApiId: !Ref SecretSantaApi
+        
+        UpdateGiftName:
+          Type: Api
+          Properties:
+            Path: /api/gifts/{gift_id}/name
+            Method: PUT
+            RestApiId: !Ref SecretSantaApi
+        
+        # Game endpoints
+        GetCurrentTurn:
+          Type: Api
+          Properties:
+            Path: /api/game/current-turn
+            Method: GET
+            RestApiId: !Ref SecretSantaApi
+        
+        StartGame:
+          Type: Api
+          Properties:
+            Path: /api/game/start
+            Method: PUT
+            RestApiId: !Ref SecretSantaApi
+        
+        NextTurn:
+          Type: Api
+          Properties:
+            Path: /api/game/next-turn
+            Method: PUT
+            RestApiId: !Ref SecretSantaApi
+        
+        PreviousTurn:
+          Type: Api
+          Properties:
+            Path: /api/game/previous-turn
+            Method: PUT
+            RestApiId: !Ref SecretSantaApi
+        
+        # Nuclear reset
+        NuclearReset:
+          Type: Api
+          Properties:
+            Path: /api/nuclear/reset
+            Method: POST
+            RestApiId: !Ref SecretSantaApi
+        
+        # OPTIONS for CORS preflight
+        OptionsProxy:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: OPTIONS
+            RestApiId: !Ref SecretSantaApi
+
+  # API Gateway
+  SecretSantaApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: !Sub 'secret-santa-api-${Environment}'
+      StageName: !Ref Environment
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+        AllowOrigin: "'*'"
+        MaxAge: "'600'"
+
+  # Frontend S3 Bucket
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'secret-santa-frontend-${Environment}-${AWS::AccountId}'
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: false
+        BlockPublicPolicy: false
+        IgnorePublicAcls: false
+        RestrictPublicBuckets: false
+
+  # Frontend Bucket Policy
+  FrontendBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref FrontendBucket
+      PolicyDocument:
+        Statement:
+          - Sid: PublicReadGetObject
+            Effect: Allow
+            Principal: '*'
+            Action: 's3:GetObject'
+            Resource: !Sub '${FrontendBucket.Arn}/*'
+
+Outputs:
+  ApiUrl:
+    Description: API Gateway endpoint URL
+    Value: !Sub 'https://${SecretSantaApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiUrl'
+  
+  FrontendUrl:
+    Description: Frontend S3 website URL
+    Value: !GetAtt FrontendBucket.WebsiteURL
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendUrl'
+  
+  FrontendBucketName:
+    Description: Frontend S3 bucket name
+    Value: !Ref FrontendBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-FrontendBucket'
+  
+  DataBucketName:
+    Description: Data S3 bucket name
+    Value: !Ref DataBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-DataBucket'

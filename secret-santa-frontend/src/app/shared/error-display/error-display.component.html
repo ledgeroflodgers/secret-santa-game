@@ -1,0 +1,29 @@
+<div *ngIf="error" class="error-container" [class]="type">
+  <div class="error-icon">
+    <span *ngIf="type === 'error'">⚠️</span>
+    <span *ngIf="type === 'warning'">⚠️</span>
+    <span *ngIf="type === 'info'">ℹ️</span>
+  </div>
+  
+  <div class="error-content">
+    <div class="error-message">{{ error }}</div>
+    
+    <div class="error-actions" *ngIf="retryable || dismissible">
+      <button 
+        *ngIf="retryable" 
+        class="btn btn-retry" 
+        (click)="onRetry()"
+        type="button">
+        Try Again
+      </button>
+      
+      <button 
+        *ngIf="dismissible" 
+        class="btn btn-dismiss" 
+        (click)="onDismiss()"
+        type="button">
+        Dismiss
+      </button>
+    </div>
+  </div>
+</div>

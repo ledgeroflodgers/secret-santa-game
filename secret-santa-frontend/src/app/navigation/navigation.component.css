@@ -1,0 +1,141 @@
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  background: transparent;
+}
+
+.nav-brand h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #ecf0f1;
+}
+
+.nav-links {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #ecf0f1;
+  text-decoration: none;
+  padding: 0.75rem 1rem;
+  border-radius: 6px;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  border: 1px solid transparent;
+}
+
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+.nav-link.active {
+  background-color: #3498db;
+  border-color: #2980b9;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.nav-link.admin-link {
+  background-color: rgba(231, 76, 60, 0.1);
+  border-color: rgba(231, 76, 60, 0.3);
+}
+
+.nav-link.admin-link:hover {
+  background-color: rgba(231, 76, 60, 0.2);
+  border-color: rgba(231, 76, 60, 0.5);
+}
+
+.nav-link.admin-link.active {
+  background-color: #e74c3c;
+  border-color: #c0392b;
+}
+
+.nav-icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.nav-label {
+  font-size: 0.95rem;
+}
+
+/* Gift Display specific styling */
+.nav-link[href="/mobile-display"] {
+  background-color: rgba(52, 152, 219, 0.1);
+  border-color: rgba(52, 152, 219, 0.3);
+}
+
+.nav-link[href="/mobile-display"]:hover {
+  background-color: rgba(52, 152, 219, 0.2);
+  border-color: rgba(52, 152, 219, 0.5);
+}
+
+.nav-link[href="/mobile-display"].active {
+  background-color: #3498db;
+  border-color: #2980b9;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .navigation {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  .nav-brand {
+    text-align: center;
+  }
+
+  .nav-links {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .nav-link {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+  }
+
+  /* Make mobile display link more prominent on mobile */
+  .nav-link[href="/mobile-display"] {
+    background-color: rgba(52, 152, 219, 0.2);
+    border-color: rgba(52, 152, 219, 0.4);
+    font-weight: 600;
+  }
+}
+
+@media (max-width: 480px) {
+  .nav-links {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .nav-link {
+    width: 100%;
+    justify-content: center;
+    padding: 1rem;
+  }
+
+  /* Enhanced mobile display link styling for small screens */
+  .nav-link[href="/mobile-display"] {
+    background-color: rgba(52, 152, 219, 0.25);
+    border-color: rgba(52, 152, 219, 0.5);
+    font-weight: 700;
+    font-size: 1.1rem;
+  }
+
+  .nav-link[href="/mobile-display"] .nav-icon {
+    font-size: 1.3rem;
+  }
+}

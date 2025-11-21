@@ -1,0 +1,23 @@
+version = 0.1
+
+[default]
+[default.deploy]
+[default.deploy.parameters]
+stack_name = "secret-santa-backend-dev"
+resolve_s3 = true
+s3_prefix = "secret-santa-backend"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Environment=dev DataBucketName=secret-santa-game-data"
+confirm_changeset = false
+
+[prod]
+[prod.deploy]
+[prod.deploy.parameters]
+stack_name = "secret-santa-backend-prod"
+resolve_s3 = true
+s3_prefix = "secret-santa-backend"
+region = "us-east-1"
+capabilities = "CAPABILITY_IAM"
+parameter_overrides = "Environment=prod DataBucketName=secret-santa-game-data"
+confirm_changeset = true
