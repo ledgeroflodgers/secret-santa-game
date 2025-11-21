@@ -9,6 +9,10 @@
    # Authenticate
    gh auth login
    git clone https://github.com/ledgeroflodgers/secret-santa-game.git
+   git status
+   git add QUICKSTART.md
+   git commit -m "readme update"
+   git push origin main
    ```
    
 1. Navigate to the backend directory:
