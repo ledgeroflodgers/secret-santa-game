@@ -285,17 +285,58 @@ label {
   position: relative;
 }
 
-.gift-item.stealable {
+/* Gift box colors based on steal count */
+.gift-item.steal-0 {
   border-color: #28a745;
   background-color: #d4edda;
+}
+
+.gift-item.steal-1 {
+  border-color: #ffc107;
+  background-color: #fff3cd;
+}
+
+.gift-item.steal-2 {
+  border-color: #dc3545;
+  background-color: #f8d7da;
+}
+
+.gift-item.steal-3 {
+  border-color: #6c757d;
+  background-color: #e9ecef;
+  opacity: 0.8;
+}
+
+.gift-item.steal-3::after {
+  content: "🔒";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  font-size: 16px;
+}
+
+.gift-item.stealable {
   cursor: pointer;
 }
 
 .gift-item.stealable:hover {
-  background-color: #c3e6cb;
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(40, 167, 69, 0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gift-item.steal-0.stealable:hover {
+  background-color: #c3e6cb;
   border-color: #1e7e34;
+}
+
+.gift-item.steal-1.stealable:hover {
+  background-color: #ffe69c;
+  border-color: #e0a800;
+}
+
+.gift-item.steal-2.stealable:hover {
+  background-color: #f1c2c7;
+  border-color: #b02a37;
 }
 
 .gift-item.stealable::before {
@@ -313,22 +354,17 @@ label {
   transition: opacity 0.3s ease-in-out;
 }
 
+.gift-item.steal-1.stealable::before {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.gift-item.steal-2.stealable::before {
+  background-color: #dc3545;
+}
+
 .gift-item.stealable:hover::before {
   opacity: 1;
-}
-
-.gift-item.locked {
-  border-color: #dc3545;
-  background-color: #f8d7da;
-  opacity: 0.8;
-}
-
-.gift-item.locked::after {
-  content: "🔒";
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  font-size: 16px;
 }
 
 .gift-info {
@@ -413,13 +449,23 @@ label {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background-color: #ffc107;
-  border: 1px solid #e0a800;
+  background-color: #e9ecef;
+  border: 1px solid #ced4da;
 }
 
 .strike-dot.empty {
   background-color: #e9ecef;
   border-color: #ced4da;
+}
+
+.strike-dot.filled-yellow {
+  background-color: #ffc107;
+  border: 1px solid #e0a800;
+}
+
+.strike-dot.filled-grey {
+  background-color: #9E9E9E;
+  border: 1px solid #757575;
 }
 
 .steal-count {
@@ -504,8 +550,8 @@ label {
 }
 
 .gift-item.locked {
-  border-color: #dc3545;
-  background-color: #f8d7da;
+  border-color: #6c757d;
+  background-color: #e9ecef;
   opacity: 0.9;
 }
 
@@ -519,8 +565,8 @@ label {
 
 /* Highlight locked gifts with admin controls */
 .gift-item.locked:hover {
-  background-color: #f1c2c7;
-  border-color: #b02a37;
+  background-color: #dee2e6;
+  border-color: #545b62;
 }
 
 .gift-item.locked .gift-admin-controls {

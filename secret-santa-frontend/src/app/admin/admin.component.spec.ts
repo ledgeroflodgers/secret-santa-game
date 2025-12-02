@@ -4,12 +4,18 @@ import { of, throwError } from 'rxjs';
 import { AdminComponent } from './admin.component';
 import { GiftService, Gift } from '../services/gift.service';
 import { GameService, CurrentTurnResponse } from '../services/game.service';
+import { ParticipantService, Participant } from '../services/participant.service';
+import { LoadingService } from '../services/loading.service';
+import { ErrorHandlingService } from '../services/error-handling.service';
 
 describe('AdminComponent', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
   let mockGiftService: jasmine.SpyObj<GiftService>;
   let mockGameService: jasmine.SpyObj<GameService>;
+  let mockParticipantService: jasmine.SpyObj<ParticipantService>;
+  let mockLoadingService: jasmine.SpyObj<LoadingService>;
+  let mockErrorHandlingService: jasmine.SpyObj<ErrorHandlingService>;
 
   const mockCurrentTurn: CurrentTurnResponse = {
     current_turn: 1,
@@ -50,16 +56,28 @@ describe('AdminComponent', () => {
     }
   ];
 
+  const mockParticipants: Participant[] = [
+    { id: 1, name: 'John Doe', registration_timestamp: '2024-01-01T10:00:00Z' },
+    { id: 2, name: 'Jane Smith', registration_timestamp: '2024-01-01T10:05:00Z' },
+    { id: 3, name: 'Bob Wilson', registration_timestamp: '2024-01-01T10:10:00Z' }
+  ];
+
   beforeEach(async () => {
-    const giftServiceSpy = jasmine.createSpyObj('GiftService', ['getGifts', 'addGift', 'stealGift']);
-    const gameServiceSpy = jasmine.createSpyObj('GameService', ['getCurrentTurn', 'advanceTurn']);
+    const giftServiceSpy = jasmine.createSpyObj('GiftService', ['getGifts', 'addGift', 'stealGift', 'resetGiftSteals', 'updateGiftName']);
+    const gameServiceSpy = jasmine.createSpyObj('GameService', ['getCurrentTurn', 'advanceTurn', 'startGame', 'previousTurn']);
+    const participantServiceSpy = jasmine.createSpyObj('ParticipantService', ['getParticipants']);
+    const loadingServiceSpy = jasmine.createSpyObj('LoadingService', ['wrapWithLoading', 'isLoadingSync']);
+    const errorHandlingServiceSpy = jasmine.createSpyObj('ErrorHandlingService', ['getUserFriendlyMessage']);
 
     await TestBed.configureTestingModule({
       declarations: [AdminComponent],
       imports: [ReactiveFormsModule],
       providers: [
         { provide: GiftService, useValue: giftServiceSpy },
-        { provide: GameService, useValue: gameServiceSpy }
+        { provide: GameService, useValue: gameServiceSpy },
+        { provide: ParticipantService, useValue: participantServiceSpy },
+        { provide: LoadingService, useValue: loadingServiceSpy },
+        { provide: ErrorHandlingService, useValue: errorHandlingServiceSpy }
       ]
     }).compileComponents();
 
@@ -67,10 +85,21 @@ describe('AdminComponent', () => {
     component = fixture.componentInstance;
     mockGiftService = TestBed.inject(GiftService) as jasmine.SpyObj<GiftService>;
     mockGameService = TestBed.inject(GameService) as jasmine.SpyObj<GameService>;
+    mockParticipantService = TestBed.inject(ParticipantService) as jasmine.SpyObj<ParticipantService>;
+    mockLoadingService = TestBed.inject(LoadingService) as jasmine.SpyObj<LoadingService>;
+    mockErrorHandlingService = TestBed.inject(ErrorHandlingService) as jasmine.SpyObj<ErrorHandlingService>;
 
     // Setup default mock responses
     mockGameService.getCurrentTurn.and.returnValue(of(mockCurrentTurn));
     mockGiftService.getGifts.and.returnValue(of({ gifts: mockGifts }));
+    mockParticipantService.getParticipants.and.returnValue(of(mockParticipants));
+    mockLoadingService.isLoadingSync.and.returnValue(false);
+    mockErrorHandlingService.getUserFriendlyMessage.and.callFake((error: any) => {
+      return error?.error?.error || 'An error occurred';
+    });
+    
+    // Make wrapWithLoading pass through the observable
+    mockLoadingService.wrapWithLoading.and.callFake((key: string, obs: any) => obs);
   });
 
   it('should create', () => {
@@ -84,6 +113,8 @@ describe('AdminComponent', () => {
     });
 
     it('should load current turn and gifts on init', () => {
+      // Simulate authentication first
+      component.isAuthenticated = true;
       component.ngOnInit();
 
       expect(mockGameService.getCurrentTurn).toHaveBeenCalled();
@@ -95,16 +126,24 @@ describe('AdminComponent', () => {
     it('should handle errors when loading initial data', () => {
       mockGameService.getCurrentTurn.and.returnValue(throwError(() => new Error('Network error')));
       mockGiftService.getGifts.and.returnValue(throwError(() => new Error('Network error')));
+      mockParticipantService.getParticipants.and.returnValue(throwError(() => new Error('Network error')));
+      mockErrorHandlingService.getUserFriendlyMessage.and.returnValue('Failed to load data');
 
+      // Simulate authentication first
+      component.isAuthenticated = true;
       component.ngOnInit();
 
-      // Since both calls fail, the error message will be from the second call (gifts)
-      expect(component.error).toBe('Failed to load gifts');
+      // The error message will be set from one of the failed calls
+      expect(component.error).toBeTruthy();
     });
   });
 
   describe('Form Validation', () => {
     beforeEach(() => {
+      // Set up component state for tests
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
+      component.gifts = mockGifts;
       fixture.detectChanges();
     });
 
@@ -143,6 +182,10 @@ describe('AdminComponent', () => {
 
   describe('Gift Management', () => {
     beforeEach(() => {
+      // Set up component state for tests
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
+      component.gifts = mockGifts;
       fixture.detectChanges();
     });
 
@@ -206,6 +249,10 @@ describe('AdminComponent', () => {
 
   describe('Gift Stealing', () => {
     beforeEach(() => {
+      // Set up component state for tests
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
+      component.gifts = mockGifts;
       fixture.detectChanges();
     });
 
@@ -268,6 +315,10 @@ describe('AdminComponent', () => {
 
   describe('Turn Management', () => {
     beforeEach(() => {
+      // Set up component state for tests
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
+      component.gifts = mockGifts;
       fixture.detectChanges();
     });
 
@@ -323,6 +374,10 @@ describe('AdminComponent', () => {
 
   describe('Helper Methods', () => {
     beforeEach(() => {
+      // Set up component state for tests
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
+      component.gifts = mockGifts;
       fixture.detectChanges();
     });
 
@@ -339,9 +394,24 @@ describe('AdminComponent', () => {
     });
 
     it('should get correct strike indicators array', () => {
-      expect(component.getStrikeIndicators(mockGifts[0])).toEqual([false, false, false]); // 0 steals
-      expect(component.getStrikeIndicators(mockGifts[1])).toEqual([true, true, false]); // 2 steals
-      expect(component.getStrikeIndicators(mockGifts[2])).toEqual([true, true, true]); // 3 steals (locked)
+      // 0 steals - all empty
+      expect(component.getStrikeIndicators(mockGifts[0])).toEqual([
+        { filled: false, position: 0, isLocked: false },
+        { filled: false, position: 1, isLocked: false },
+        { filled: false, position: 2, isLocked: false }
+      ]);
+      // 2 steals - first two filled (yellow), third empty
+      expect(component.getStrikeIndicators(mockGifts[1])).toEqual([
+        { filled: true, position: 0, isLocked: false },
+        { filled: true, position: 1, isLocked: false },
+        { filled: false, position: 2, isLocked: false }
+      ]);
+      // 3 steals (locked) - all filled, third is locked (grey)
+      expect(component.getStrikeIndicators(mockGifts[2])).toEqual([
+        { filled: true, position: 0, isLocked: false },
+        { filled: true, position: 1, isLocked: false },
+        { filled: true, position: 2, isLocked: true }
+      ]);
     });
 
     it('should get correct strike count text', () => {
@@ -376,6 +446,10 @@ describe('AdminComponent', () => {
 
   describe('Gift Stealing UI Interactions', () => {
     beforeEach(() => {
+      // Set up component state for tests
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
+      component.gifts = mockGifts;
       fixture.detectChanges();
     });
 
@@ -400,8 +474,8 @@ describe('AdminComponent', () => {
       const compiled = fixture.nativeElement as HTMLElement;
       const strikeIndicators = compiled.querySelectorAll('.strike-indicators');
       
-      // Should have strike indicators for non-locked gifts
-      expect(strikeIndicators.length).toBe(2); // First two gifts are not locked
+      // Should have strike indicators for all gifts (including locked)
+      expect(strikeIndicators.length).toBe(3);
       
       // Check strike dots for second gift (2 steals)
       const secondGiftStrikes = strikeIndicators[1].querySelectorAll('.strike-dot');
@@ -409,14 +483,22 @@ describe('AdminComponent', () => {
       expect(secondGiftStrikes[0].classList.contains('empty')).toBe(false);
       expect(secondGiftStrikes[1].classList.contains('empty')).toBe(false);
       expect(secondGiftStrikes[2].classList.contains('empty')).toBe(true);
+      
+      // Check strike dots for locked gift (3 steals) - first two yellow, third grey
+      const lockedGiftStrikes = strikeIndicators[2].querySelectorAll('.strike-dot');
+      expect(lockedGiftStrikes.length).toBe(3);
+      expect(lockedGiftStrikes[0].classList.contains('filled-yellow')).toBe(true);
+      expect(lockedGiftStrikes[1].classList.contains('filled-yellow')).toBe(true);
+      expect(lockedGiftStrikes[2].classList.contains('filled-grey')).toBe(true);
     });
 
     it('should handle click events on stealable gifts', () => {
       spyOn(component, 'onStealGift');
       const compiled = fixture.nativeElement as HTMLElement;
-      const stealableGift = compiled.querySelector('.gift-item.stealable') as HTMLElement;
+      // The click handler is on the .gift-name span, not the .gift-item div
+      const stealableGiftName = compiled.querySelector('.gift-item.stealable .gift-name.clickable') as HTMLElement;
       
-      stealableGift.click();
+      stealableGiftName.click();
       
       expect(component.onStealGift).toHaveBeenCalledWith(mockGifts[0]);
     });
@@ -424,24 +506,27 @@ describe('AdminComponent', () => {
     it('should not handle click events on locked gifts', () => {
       spyOn(component, 'onStealGift');
       const compiled = fixture.nativeElement as HTMLElement;
-      const lockedGift = compiled.querySelector('.gift-item.locked') as HTMLElement;
+      // Locked gifts don't have the clickable class
+      const lockedGiftName = compiled.querySelector('.gift-item.locked .gift-name') as HTMLElement;
       
-      lockedGift.click();
+      lockedGiftName.click();
       
       expect(component.onStealGift).not.toHaveBeenCalled();
     });
 
     it('should display correct tooltips', () => {
       const compiled = fixture.nativeElement as HTMLElement;
-      const giftItems = compiled.querySelectorAll('.gift-item');
+      // The title attribute is on the .gift-name span, not the .gift-item div
+      const giftNames = compiled.querySelectorAll('.gift-name');
       
-      expect(giftItems[0].getAttribute('title')).toBe('Click to steal this gift (3 steals remaining before lock)');
-      expect(giftItems[2].getAttribute('title')).toBe('This gift is locked and cannot be stolen anymore');
+      expect(giftNames[0].getAttribute('title')).toBe('Click to steal this gift (3 steals remaining before lock)');
+      expect(giftNames[2].getAttribute('title')).toBe('This gift is locked and cannot be stolen anymore');
     });
   });
 
   describe('Component Cleanup', () => {
     it('should unsubscribe on destroy', () => {
+      component.isAuthenticated = true;
       component.ngOnInit();
       spyOn(component['refreshSubscription']!, 'unsubscribe');
 

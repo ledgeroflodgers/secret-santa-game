@@ -7,6 +7,15 @@ import { ParticipantService, Participant } from '../services/participant.service
 import { LoadingService } from '../services/loading.service';
 import { ErrorHandlingService } from '../services/error-handling.service';
 
+/**
+ * Interface representing a strike indicator with position-based coloring information
+ */
+export interface StrikeIndicator {
+  filled: boolean;
+  position: number;  // 0, 1, or 2
+  isLocked: boolean; // true for position 2 when filled
+}
+
 @Component({
   selector: 'app-admin',
   templateUrl: './admin.component.html',
@@ -432,12 +441,18 @@ export class AdminComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get array of strike indicators for visual display
+   * Get array of strike indicators for visual display with position-based coloring
+   * Returns StrikeIndicator objects with filled status, position, and isLocked flag
    */
-  getStrikeIndicators(gift: Gift): boolean[] {
-    const indicators = [false, false, false]; // 3 possible strikes
-    for (let i = 0; i < Math.min(gift.steal_count, 3); i++) {
-      indicators[i] = true;
+  getStrikeIndicators(gift: Gift): StrikeIndicator[] {
+    const indicators: StrikeIndicator[] = [];
+    for (let i = 0; i < 3; i++) {
+      const filled = i < gift.steal_count;
+      indicators.push({
+        filled: filled,
+        position: i,
+        isLocked: i === 2 && filled  // Position 2 (third indicator) is locked when filled
+      });
     }
     return indicators;
   }

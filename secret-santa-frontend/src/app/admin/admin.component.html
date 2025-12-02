@@ -172,6 +172,10 @@
       <div 
         *ngFor="let gift of gifts" 
         class="gift-item"
+        [class.steal-0]="gift.steal_count === 0 && !gift.is_locked"
+        [class.steal-1]="gift.steal_count === 1 && !gift.is_locked"
+        [class.steal-2]="gift.steal_count === 2 && !gift.is_locked"
+        [class.steal-3]="gift.steal_count === 3 || gift.is_locked"
         [class.locked]="gift.is_locked"
         [class.stealable]="canStealGift(gift)"
         [class.editing]="isEditingGift(gift.id)">
@@ -243,12 +247,14 @@
             </div>
             
             <!-- Visual strike indicators -->
-            <div class="strike-indicators" *ngIf="!gift.is_locked">
+            <div class="strike-indicators">
               <div 
-                *ngFor="let filled of getStrikeIndicators(gift); let i = index"
+                *ngFor="let indicator of getStrikeIndicators(gift)"
                 class="strike-dot"
-                [class.empty]="!filled"
-                [title]="'Strike ' + (i + 1) + (filled ? ' - Used' : ' - Available')">
+                [class.empty]="!indicator.filled"
+                [class.filled-yellow]="indicator.filled && indicator.position < 2"
+                [class.filled-grey]="indicator.filled && indicator.position === 2"
+                [title]="'Strike ' + (indicator.position + 1) + (indicator.filled ? ' - Used' : ' - Available')">
               </div>
             </div>
           </div>

@@ -1,54 +1,116 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { of } from 'rxjs';
 import { AdminComponent } from './admin.component';
 import { GiftService, Gift } from '../services/gift.service';
 import { GameService, CurrentTurnResponse } from '../services/game.service';
+import { ParticipantService, Participant } from '../services/participant.service';
+import { LoadingService } from '../services/loading.service';
+import { ErrorHandlingService } from '../services/error-handling.service';
 
 describe('Gift Stealing Integration Tests', () => {
   let component: AdminComponent;
   let fixture: ComponentFixture<AdminComponent>;
   let mockGiftService: jasmine.SpyObj<GiftService>;
   let mockGameService: jasmine.SpyObj<GameService>;
+  let mockParticipantService: jasmine.SpyObj<ParticipantService>;
+  let mockLoadingService: jasmine.SpyObj<LoadingService>;
+  let mockErrorHandlingService: jasmine.SpyObj<ErrorHandlingService>;
 
   const mockCurrentTurn: CurrentTurnResponse = {
     current_turn: 1,
     current_participant: {
       id: 1,
       name: 'John Doe',
-      registration_timestamp: '2024-01-01T10:00:00Z'
+      registration_timestamp: '2024-01-01T10:00:00Z',
     },
     game_phase: 'active',
     turn_order: [1, 2, 3],
-    total_participants: 3
+    total_participants: 3,
   };
 
+  const mockParticipants: Participant[] = [
+    { id: 1, name: 'John Doe', registration_timestamp: '2024-01-01T10:00:00Z' },
+    { id: 2, name: 'Jane Smith', registration_timestamp: '2024-01-01T10:05:00Z' },
+    { id: 3, name: 'Bob Wilson', registration_timestamp: '2024-01-01T10:10:00Z' },
+  ];
+
   beforeEach(async () => {
-    const giftServiceSpy = jasmine.createSpyObj('GiftService', ['getGifts', 'addGift', 'stealGift']);
-    const gameServiceSpy = jasmine.createSpyObj('GameService', ['getCurrentTurn', 'advanceTurn']);
+    const giftServiceSpy = jasmine.createSpyObj('GiftService', [
+      'getGifts',
+      'addGift',
+      'stealGift',
+      'resetGiftSteals',
+      'updateGiftName',
+    ]);
+    const gameServiceSpy = jasmine.createSpyObj('GameService', [
+      'getCurrentTurn',
+      'advanceTurn',
+      'startGame',
+      'previousTurn',
+    ]);
+    const participantServiceSpy = jasmine.createSpyObj('ParticipantService', [
+      'getParticipants',
+    ]);
+    const loadingServiceSpy = jasmine.createSpyObj('LoadingService', [
+      'wrapWithLoading',
+      'isLoadingSync',
+    ]);
+    const errorHandlingServiceSpy = jasmine.createSpyObj(
+      'ErrorHandlingService',
+      ['getUserFriendlyMessage']
+    );
 
     await TestBed.configureTestingModule({
       declarations: [AdminComponent],
-      imports: [ReactiveFormsModule],
+      imports: [ReactiveFormsModule, FormsModule],
       providers: [
         { provide: GiftService, useValue: giftServiceSpy },
-        { provide: GameService, useValue: gameServiceSpy }
-      ]
+        { provide: GameService, useValue: gameServiceSpy },
+        { provide: ParticipantService, useValue: participantServiceSpy },
+        { provide: LoadingService, useValue: loadingServiceSpy },
+        { provide: ErrorHandlingService, useValue: errorHandlingServiceSpy },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminComponent);
     component = fixture.componentInstance;
     mockGiftService = TestBed.inject(GiftService) as jasmine.SpyObj<GiftService>;
     mockGameService = TestBed.inject(GameService) as jasmine.SpyObj<GameService>;
+    mockParticipantService = TestBed.inject(
+      ParticipantService
+    ) as jasmine.SpyObj<ParticipantService>;
+    mockLoadingService = TestBed.inject(
+      LoadingService
+    ) as jasmine.SpyObj<LoadingService>;
+    mockErrorHandlingService = TestBed.inject(
+      ErrorHandlingService
+    ) as jasmine.SpyObj<ErrorHandlingService>;
 
+    // Setup default mock responses
     mockGameService.getCurrentTurn.and.returnValue(of(mockCurrentTurn));
+    mockParticipantService.getParticipants.and.returnValue(of(mockParticipants));
+    mockLoadingService.isLoadingSync.and.returnValue(false);
+    mockErrorHandlingService.getUserFriendlyMessage.and.callFake(
+      (error: any) => {
+        return error?.error?.error || 'An error occurred';
+      }
+    );
+
+    // Make wrapWithLoading pass through the observable
+    mockLoadingService.wrapWithLoading.and.callFake(
+      (key: string, obs: any) => obs
+    );
   });
 
   describe('Complete Gift Stealing Workflow', () => {
     it('should handle complete gift stealing lifecycle from creation to lock', () => {
       // Initial state - no gifts
       mockGiftService.getGifts.and.returnValue(of({ gifts: [] }));
-      
+
+      // Simulate authentication
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
       component.ngOnInit();
       fixture.detectChanges();
 
@@ -61,7 +123,7 @@ describe('Gift Stealing Integration Tests', () => {
         steal_count: 0,
         is_locked: false,
         current_owner: 1,
-        steal_history: []
+        steal_history: [],
       };
 
       mockGiftService.addGift.and.returnValue(of(newGift));
@@ -72,7 +134,7 @@ describe('Gift Stealing Integration Tests', () => {
 
       expect(mockGiftService.addGift).toHaveBeenCalledWith({
         name: 'Test Gift',
-        owner_id: 1
+        owner_id: 1,
       });
 
       // Step 2: First steal (steal_count: 1)
@@ -80,40 +142,52 @@ describe('Gift Stealing Integration Tests', () => {
         ...newGift,
         steal_count: 1,
         current_owner: 2,
-        steal_history: [1]
+        steal_history: [1],
       };
 
-      mockGiftService.stealGift.and.returnValue(of({
-        success: true,
-        message: 'Gift stolen successfully',
-        gift: giftAfterFirstSteal
-      }));
-      mockGiftService.getGifts.and.returnValue(of({ gifts: [giftAfterFirstSteal] }));
+      mockGiftService.stealGift.and.returnValue(
+        of({
+          success: true,
+          message: 'Gift stolen successfully',
+          gift: giftAfterFirstSteal,
+        })
+      );
+      mockGiftService.getGifts.and.returnValue(
+        of({ gifts: [giftAfterFirstSteal] })
+      );
 
       component.currentTurn = { ...mockCurrentTurn, current_turn: 2 };
       component.onStealGift(newGift);
 
-      expect(mockGiftService.stealGift).toHaveBeenCalledWith('gift1', { new_owner_id: 2 });
+      expect(mockGiftService.stealGift).toHaveBeenCalledWith('gift1', {
+        new_owner_id: 2,
+      });
 
       // Step 3: Second steal (steal_count: 2)
       const giftAfterSecondSteal: Gift = {
         ...giftAfterFirstSteal,
         steal_count: 2,
         current_owner: 3,
-        steal_history: [1, 2]
+        steal_history: [1, 2],
       };
 
-      mockGiftService.stealGift.and.returnValue(of({
-        success: true,
-        message: 'Gift stolen successfully',
-        gift: giftAfterSecondSteal
-      }));
-      mockGiftService.getGifts.and.returnValue(of({ gifts: [giftAfterSecondSteal] }));
+      mockGiftService.stealGift.and.returnValue(
+        of({
+          success: true,
+          message: 'Gift stolen successfully',
+          gift: giftAfterSecondSteal,
+        })
+      );
+      mockGiftService.getGifts.and.returnValue(
+        of({ gifts: [giftAfterSecondSteal] })
+      );
 
       component.currentTurn = { ...mockCurrentTurn, current_turn: 3 };
       component.onStealGift(giftAfterFirstSteal);
 
-      expect(mockGiftService.stealGift).toHaveBeenCalledWith('gift1', { new_owner_id: 3 });
+      expect(mockGiftService.stealGift).toHaveBeenCalledWith('gift1', {
+        new_owner_id: 3,
+      });
 
       // Step 4: Third steal - gift becomes locked (steal_count: 3)
       const lockedGift: Gift = {
@@ -121,20 +195,24 @@ describe('Gift Stealing Integration Tests', () => {
         steal_count: 3,
         is_locked: true,
         current_owner: 1,
-        steal_history: [1, 2, 3]
+        steal_history: [1, 2, 3],
       };
 
-      mockGiftService.stealGift.and.returnValue(of({
-        success: true,
-        message: 'Gift stolen successfully - Gift is now locked after 3 steals',
-        gift: lockedGift
-      }));
+      mockGiftService.stealGift.and.returnValue(
+        of({
+          success: true,
+          message: 'Gift stolen successfully - Gift is now locked after 3 steals',
+          gift: lockedGift,
+        })
+      );
       mockGiftService.getGifts.and.returnValue(of({ gifts: [lockedGift] }));
 
       component.currentTurn = { ...mockCurrentTurn, current_turn: 1 };
       component.onStealGift(giftAfterSecondSteal);
 
-      expect(mockGiftService.stealGift).toHaveBeenCalledWith('gift1', { new_owner_id: 1 });
+      expect(mockGiftService.stealGift).toHaveBeenCalledWith('gift1', {
+        new_owner_id: 1,
+      });
 
       // Step 5: Attempt to steal locked gift - should fail
       component.onStealGift(lockedGift);
@@ -151,7 +229,7 @@ describe('Gift Stealing Integration Tests', () => {
           steal_count: 0,
           is_locked: false,
           current_owner: 1,
-          steal_history: []
+          steal_history: [],
         },
         {
           id: 'gift2',
@@ -159,7 +237,7 @@ describe('Gift Stealing Integration Tests', () => {
           steal_count: 1,
           is_locked: false,
           current_owner: 2,
-          steal_history: [1]
+          steal_history: [1],
         },
         {
           id: 'gift3',
@@ -167,7 +245,7 @@ describe('Gift Stealing Integration Tests', () => {
           steal_count: 2,
           is_locked: false,
           current_owner: 3,
-          steal_history: [1, 2]
+          steal_history: [1, 2],
         },
         {
           id: 'gift4',
@@ -175,11 +253,15 @@ describe('Gift Stealing Integration Tests', () => {
           steal_count: 3,
           is_locked: true,
           current_owner: 1,
-          steal_history: [2, 3, 1]
-        }
+          steal_history: [2, 3, 1],
+        },
       ];
 
       mockGiftService.getGifts.and.returnValue(of({ gifts }));
+
+      // Simulate authentication
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
       component.ngOnInit();
       fixture.detectChanges();
 
@@ -195,11 +277,27 @@ describe('Gift Stealing Integration Tests', () => {
       expect(component.getStrikeCssClass(gifts[2])).toBe('has-strikes');
       expect(component.getStrikeCssClass(gifts[3])).toBe('locked');
 
-      // Test strike indicators
-      expect(component.getStrikeIndicators(gifts[0])).toEqual([false, false, false]);
-      expect(component.getStrikeIndicators(gifts[1])).toEqual([true, false, false]);
-      expect(component.getStrikeIndicators(gifts[2])).toEqual([true, true, false]);
-      expect(component.getStrikeIndicators(gifts[3])).toEqual([true, true, true]);
+      // Test strike indicators with position-based coloring
+      expect(component.getStrikeIndicators(gifts[0])).toEqual([
+        { filled: false, position: 0, isLocked: false },
+        { filled: false, position: 1, isLocked: false },
+        { filled: false, position: 2, isLocked: false },
+      ]);
+      expect(component.getStrikeIndicators(gifts[1])).toEqual([
+        { filled: true, position: 0, isLocked: false },
+        { filled: false, position: 1, isLocked: false },
+        { filled: false, position: 2, isLocked: false },
+      ]);
+      expect(component.getStrikeIndicators(gifts[2])).toEqual([
+        { filled: true, position: 0, isLocked: false },
+        { filled: true, position: 1, isLocked: false },
+        { filled: false, position: 2, isLocked: false },
+      ]);
+      expect(component.getStrikeIndicators(gifts[3])).toEqual([
+        { filled: true, position: 0, isLocked: false },
+        { filled: true, position: 1, isLocked: false },
+        { filled: true, position: 2, isLocked: true },
+      ]);
 
       // Test steal ability
       expect(component.canStealGift(gifts[0])).toBe(true);
@@ -209,9 +307,15 @@ describe('Gift Stealing Integration Tests', () => {
 
       // Test tooltips (gifts[0] has current_owner: 1, same as current_turn: 1)
       expect(component.getGiftTooltip(gifts[0])).toBe('You already own this gift');
-      expect(component.getGiftTooltip(gifts[1])).toBe('Click to steal this gift (2 steals remaining before lock)');
-      expect(component.getGiftTooltip(gifts[2])).toBe('Click to steal this gift (1 steals remaining before lock)');
-      expect(component.getGiftTooltip(gifts[3])).toBe('This gift is locked and cannot be stolen anymore');
+      expect(component.getGiftTooltip(gifts[1])).toBe(
+        'Click to steal this gift (2 steals remaining before lock)'
+      );
+      expect(component.getGiftTooltip(gifts[2])).toBe(
+        'Click to steal this gift (1 steals remaining before lock)'
+      );
+      expect(component.getGiftTooltip(gifts[3])).toBe(
+        'This gift is locked and cannot be stolen anymore'
+      );
     });
 
     it('should handle edge cases in gift stealing', () => {
@@ -221,34 +325,50 @@ describe('Gift Stealing Integration Tests', () => {
         steal_count: 0,
         is_locked: false,
         current_owner: 1,
-        steal_history: []
+        steal_history: [],
       };
 
       mockGiftService.getGifts.and.returnValue(of({ gifts: [gift] }));
+
+      // Simulate authentication
+      component.isAuthenticated = true;
+      component.currentTurn = mockCurrentTurn;
       component.ngOnInit();
       fixture.detectChanges();
 
       // Test when no current turn
       component.currentTurn = { ...mockCurrentTurn, current_turn: null };
       expect(component.canStealGift(gift)).toBe(false);
-      expect(component.getGiftTooltip(gift)).toBe('No active turn - cannot steal gifts');
+      expect(component.getGiftTooltip(gift)).toBe(
+        'No active turn - cannot steal gifts'
+      );
 
       // Test when user owns the gift
       component.currentTurn = mockCurrentTurn;
       const ownedGift = { ...gift, current_owner: 1 };
-      expect(component.getGiftTooltip(ownedGift)).toBe('You already own this gift');
+      expect(component.getGiftTooltip(ownedGift)).toBe(
+        'You already own this gift'
+      );
 
       // Test strike count text variations
-      expect(component.getStrikeCountText(gift)).toBe('No steals yet - 3 steals allowed');
-      
+      expect(component.getStrikeCountText(gift)).toBe(
+        'No steals yet - 3 steals allowed'
+      );
+
       const oneStealGift = { ...gift, steal_count: 1 };
-      expect(component.getStrikeCountText(oneStealGift)).toBe('1/3 steals - 2 more steals allowed');
-      
+      expect(component.getStrikeCountText(oneStealGift)).toBe(
+        '1/3 steals - 2 more steals allowed'
+      );
+
       const twoStealGift = { ...gift, steal_count: 2 };
-      expect(component.getStrikeCountText(twoStealGift)).toBe('2/3 steals - 1 more steal will lock this gift');
-      
+      expect(component.getStrikeCountText(twoStealGift)).toBe(
+        '2/3 steals - 1 more steal will lock this gift'
+      );
+
       const lockedGift = { ...gift, steal_count: 3, is_locked: true };
-      expect(component.getStrikeCountText(lockedGift)).toBe('LOCKED - No more steals allowed');
+      expect(component.getStrikeCountText(lockedGift)).toBe(
+        'LOCKED - No more steals allowed'
+      );
     });
   });
 });

@@ -7,25 +7,24 @@ import { of } from 'rxjs';
 
 describe('AppComponent', () => {
   beforeEach(() => {
-    const navigationServiceSpy = jasmine.createSpyObj('NavigationService', 
-      ['isCurrentRoute'], 
+    const navigationServiceSpy = jasmine.createSpyObj(
+      'NavigationService',
+      ['isCurrentRoute'],
       {
         navigationItems: [
           { path: '/', label: 'Home', icon: '🏠' },
           { path: '/register', label: 'Register', icon: '📝' },
           { path: '/participants', label: 'Participants', icon: '👥' },
-          { path: '/admin', label: 'Admin', icon: '⚙️', requiresAdmin: true }
+          { path: '/admin', label: 'Admin', icon: '⚙️', requiresAdmin: true },
         ],
-        currentPageTitle$: of('Secret Santa Game')
+        currentPageTitle$: of('Secret Santa Game'),
       }
     );
 
     TestBed.configureTestingModule({
       imports: [RouterTestingModule],
       declarations: [AppComponent, NavigationComponent],
-      providers: [
-        { provide: NavigationService, useValue: navigationServiceSpy }
-      ]
+      providers: [{ provide: NavigationService, useValue: navigationServiceSpy }],
     });
   });
 
@@ -41,10 +40,13 @@ describe('AppComponent', () => {
     expect(app.title).toEqual('FX Holiday Gift Exchange');
   });
 
-  it('should render title', () => {
+  it('should render header with link', () => {
     const fixture = TestBed.createComponent(AppComponent);
     fixture.detectChanges();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('FX Holiday Gift Exchange');
+    // The h1 contains a link to fxgift.short.gy
+    expect(compiled.querySelector('h1 a')?.textContent).toContain(
+      'fxgift.short.gy'
+    );
   });
 });

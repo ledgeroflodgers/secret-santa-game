@@ -247,9 +247,11 @@ describe('ParticipantsComponent', () => {
       component.error = null;
       component.participants = mockParticipants;
       fixture.detectChanges();
-      
-      const headerElement = fixture.nativeElement.querySelector('.participants-header h3');
-      expect(headerElement.textContent).toContain('3 Secret Santas Ready!');
+
+      const headerElement = fixture.nativeElement.querySelector(
+        '.participants-header h3'
+      );
+      expect(headerElement.textContent).toContain('3 Gift Exchangers Ready!');
     });
 
     it('should show singular form for one participant', () => {
@@ -257,9 +259,11 @@ describe('ParticipantsComponent', () => {
       component.error = null;
       component.participants = [mockParticipants[0]];
       fixture.detectChanges();
-      
-      const headerElement = fixture.nativeElement.querySelector('.participants-header h3');
-      expect(headerElement.textContent).toContain('1 Secret Santa Ready!');
+
+      const headerElement = fixture.nativeElement.querySelector(
+        '.participants-header h3'
+      );
+      expect(headerElement.textContent).toContain('1 Gift Exchanger Ready!');
     });
 
     it('should have refresh button that calls refreshParticipants', () => {

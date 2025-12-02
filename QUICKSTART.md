@@ -33,7 +33,7 @@
 
 4. Run the backend:
    ```bash
-   python app.py
+   python3 app.py
    ```
 
    The backend will be available at `http://localhost:8080`

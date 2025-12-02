@@ -10,12 +10,9 @@ describe('AdminGuard', () => {
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
 
     TestBed.configureTestingModule({
-      providers: [
-        AdminGuard,
-        { provide: Router, useValue: routerSpy }
-      ]
+      providers: [AdminGuard, { provide: Router, useValue: routerSpy }],
     });
-    
+
     guard = TestBed.inject(AdminGuard);
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
   });
@@ -24,21 +21,11 @@ describe('AdminGuard', () => {
     expect(guard).toBeTruthy();
   });
 
-  it('should allow access when user confirms admin status', () => {
-    spyOn(window, 'confirm').and.returnValue(true);
-    
+  it('should allow access to admin route', () => {
+    // The guard now always allows access - authentication is handled by the component
     const result = guard.canActivate();
-    
+
     expect(result).toBe(true);
     expect(router.navigate).not.toHaveBeenCalled();
-  });
-
-  it('should deny access and redirect when user denies admin status', () => {
-    spyOn(window, 'confirm').and.returnValue(false);
-    
-    const result = guard.canActivate();
-    
-    expect(result).toBe(false);
-    expect(router.navigate).toHaveBeenCalledWith(['/']);
   });
 });
