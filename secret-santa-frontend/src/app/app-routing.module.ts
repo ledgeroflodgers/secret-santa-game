@@ -9,44 +9,44 @@ import { MobileGiftDisplayComponent } from './mobile-gift-display/mobile-gift-di
 import { AdminGuard } from './guards/admin.guard';
 
 const routes: Routes = [
-  { 
-    path: '', 
+  {
+    path: '',
     component: HomeComponent,
-    data: { title: 'Gift Exchange!' }
+    data: { title: '' }
   },
-  { 
-    path: 'register', 
+  {
+    path: 'register',
     component: RegistrationComponent,
     data: { title: 'Register' }
   },
-  { 
-    path: 'participants', 
+  {
+    path: 'participants',
     component: ParticipantsComponent,
     data: { title: 'Participants' }
   },
-  { 
-    path: 'admin', 
+  {
+    path: 'admin',
     component: AdminComponent,
     canActivate: [AdminGuard],
     data: { title: 'Admin Panel' }
   },
-  { 
-    path: 'mobile-display', 
+  {
+    path: 'mobile-display',
     component: MobileGiftDisplayComponent,
     data: { title: 'Gift Display' }
   },
-  { 
-    path: 'db-refresh', 
+  {
+    path: 'db-refresh',
     component: NuclearComponent,
     data: { title: 'Database Refresh' }
   },
-  { 
-    path: 'game', 
-    redirectTo: '/admin', 
-    pathMatch: 'full' 
+  {
+    path: 'game',
+    redirectTo: '/admin',
+    pathMatch: 'full'
   },
-  { 
-    path: '**', 
+  {
+    path: '**',
     redirectTo: '/',
     data: { title: '' }
   }

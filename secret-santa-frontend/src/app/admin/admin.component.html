@@ -158,6 +158,24 @@
   <div class="gifts-section">
     <h2>Gifts Pool</h2>
     
+    <!-- Gift Search -->
+    <div class="gift-search">
+      <input 
+        type="text" 
+        [(ngModel)]="giftSearchQuery"
+        class="form-control search-input"
+        placeholder="🔍 Search gifts..."
+        (input)="onSearchGifts()">
+      <button 
+        *ngIf="giftSearchQuery" 
+        type="button" 
+        class="btn-clear-search"
+        (click)="clearGiftSearch()"
+        title="Clear search">
+        ✕
+      </button>
+    </div>
+    
     <app-loading 
       *ngIf="isGiftsLoading" 
       message="Loading gifts..." 
@@ -168,9 +186,13 @@
       No gifts added yet.
     </div>
     
-    <div *ngIf="gifts.length > 0 && !isGiftsLoading" class="gifts-list">
+    <div *ngIf="filteredGifts.length === 0 && gifts.length > 0 && !isGiftsLoading && giftSearchQuery" class="no-gifts">
+      No gifts match "{{ giftSearchQuery }}"
+    </div>
+    
+    <div *ngIf="filteredGifts.length > 0 && !isGiftsLoading" class="gifts-list">
       <div 
-        *ngFor="let gift of gifts" 
+        *ngFor="let gift of filteredGifts" 
         class="gift-item"
         [class.steal-0]="gift.steal_count === 0 && !gift.is_locked"
         [class.steal-1]="gift.steal_count === 1 && !gift.is_locked"

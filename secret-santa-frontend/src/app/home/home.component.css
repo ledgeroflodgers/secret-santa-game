@@ -24,6 +24,18 @@
   opacity: 0.9;
 }
 
+.qr-code {
+  margin-bottom: 2rem;
+}
+
+.qr-image {
+  max-width: 200px;
+  height: auto;
+  border-radius: 8px;
+  background: white;
+  padding: 10px;
+}
+
 .hero-actions {
   display: flex;
   gap: 1rem;

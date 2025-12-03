@@ -260,6 +260,37 @@ label {
   border-radius: 8px;
 }
 
+/* Gift Search */
+.gift-search {
+  position: relative;
+  margin-bottom: 16px;
+}
+
+.gift-search .search-input {
+  padding-right: 40px;
+}
+
+.btn-clear-search {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #6c757d;
+  font-size: 18px;
+  cursor: pointer;
+  padding: 4px 8px;
+  line-height: 1;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+}
+
+.btn-clear-search:hover {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
 .no-gifts {
   text-align: center;
   color: #6c757d;

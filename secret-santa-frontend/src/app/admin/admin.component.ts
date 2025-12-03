@@ -38,6 +38,10 @@ export class AdminComponent implements OnInit, OnDestroy {
   editGiftName: string = '';
   editGiftError: string | null = null;
   
+  // Gift search
+  giftSearchQuery: string = '';
+  filteredGifts: Gift[] = [];
+  
   private readonly ADMIN_PASSWORD = 'fx';
   private refreshSubscription?: Subscription;
 
@@ -151,6 +155,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     ).subscribe({
       next: (response) => {
         this.gifts = response.gifts;
+        this.filterGifts();
         this.error = null;
       },
       error: (error) => {
@@ -167,6 +172,7 @@ export class AdminComponent implements OnInit, OnDestroy {
     this.giftService.getGifts().subscribe({
       next: (response) => {
         this.gifts = response.gifts;
+        this.filterGifts();
         // Don't clear errors during silent refresh to avoid hiding important messages
       },
       error: (error) => {
@@ -735,5 +741,34 @@ export class AdminComponent implements OnInit, OnDestroy {
    */
   isUpdatingGiftName(giftId: string): boolean {
     return this.loadingService.isLoadingSync(`updateGiftName_${giftId}`);
+  }
+
+  /**
+   * Filter gifts based on search query
+   */
+  filterGifts(): void {
+    if (!this.giftSearchQuery || this.giftSearchQuery.trim() === '') {
+      this.filteredGifts = [...this.gifts];
+    } else {
+      const query = this.giftSearchQuery.toLowerCase().trim();
+      this.filteredGifts = this.gifts.filter(gift => 
+        gift.name.toLowerCase().includes(query)
+      );
+    }
+  }
+
+  /**
+   * Handle gift search input
+   */
+  onSearchGifts(): void {
+    this.filterGifts();
+  }
+
+  /**
+   * Clear gift search
+   */
+  clearGiftSearch(): void {
+    this.giftSearchQuery = '';
+    this.filterGifts();
   }
 }
