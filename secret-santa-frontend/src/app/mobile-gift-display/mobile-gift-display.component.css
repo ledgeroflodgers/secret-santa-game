@@ -585,22 +585,118 @@
 /* Gift Status Color Classes */
 .gift-status-fresh {
   background-color: #4CAF50 !important; /* Green background */
-  color: #424242 !important; /* Dark grey text */
+  color: #FFFFFF !important; /* White text */
 }
 
-.gift-status-stolen-once {
+.gift-status-stolen_once {
   background-color: #FFEB3B !important; /* Yellow background */
   color: #424242 !important; /* Dark grey text */
 }
 
-.gift-status-stolen-twice {
+.gift-status-stolen_twice {
   background-color: #F44336 !important; /* Red background */
-  color: #424242 !important; /* Dark grey text */
+  color: #FFFFFF !important; /* White text */
+  animation: flash-alert 0.8s ease-in-out infinite;
+  -webkit-animation: flash-alert 0.8s ease-in-out infinite;
+}
+
+@keyframes flash-alert {
+  0%, 100% { 
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% { 
+    opacity: 0.7;
+    filter: brightness(0.6);
+  }
+}
+
+@-webkit-keyframes flash-alert {
+  0%, 100% { 
+    opacity: 1;
+    filter: brightness(1);
+  }
+  50% { 
+    opacity: 0.7;
+    filter: brightness(0.6);
+  }
 }
 
 .gift-status-locked {
   background-color: #9E9E9E !important; /* Grey background */
   color: #FFFFFF !important; /* White text */
+}
+
+/* Explosion animation for removed gifts */
+.gift-item.exploding {
+  animation: explode 0.6s ease-out forwards !important;
+  -webkit-animation: explode 0.6s ease-out forwards !important;
+}
+
+@keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  20% {
+    transform: scale(1.3);
+    opacity: 1;
+    filter: brightness(1.5);
+    background-color: #FF5722 !important;
+  }
+  40% {
+    transform: scale(1.5);
+    opacity: 0.9;
+    filter: brightness(2);
+    background-color: #FFEB3B !important;
+  }
+  60% {
+    transform: scale(1.8) rotate(10deg);
+    opacity: 0.6;
+    filter: brightness(1.5);
+  }
+  80% {
+    transform: scale(2.2) rotate(-5deg);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(2.5) rotate(15deg);
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes explode {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+    filter: brightness(1);
+  }
+  20% {
+    transform: scale(1.3);
+    opacity: 1;
+    filter: brightness(1.5);
+    background-color: #FF5722 !important;
+  }
+  40% {
+    transform: scale(1.5);
+    opacity: 0.9;
+    filter: brightness(2);
+    background-color: #FFEB3B !important;
+  }
+  60% {
+    transform: scale(1.8) rotate(10deg);
+    opacity: 0.6;
+    filter: brightness(1.5);
+  }
+  80% {
+    transform: scale(2.2) rotate(-5deg);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(2.5) rotate(15deg);
+    opacity: 0;
+  }
 }
 
 /* Enhanced transitions for smooth color changes */
@@ -625,23 +721,24 @@
 /* High contrast mode support */
 @media (prefers-contrast: high) {
   .gift-status-fresh {
-    background-color: #2E7D32 !important; /* Darker green for better contrast */
-    color: #FFFFFF !important; /* White text for high contrast */
+    background-color: #4CAF50 !important;
+    color: #FFFFFF !important;
   }
   
-  .gift-status-stolen-once {
-    background-color: #F57F17 !important; /* Darker yellow for better contrast */
-    color: #000000 !important; /* Black text for high contrast */
+  .gift-status-stolen_once {
+    background-color: #FFEB3B !important;
+    color: #000000 !important;
   }
   
-  .gift-status-stolen-twice {
-    background-color: #C62828 !important; /* Darker red for better contrast */
-    color: #FFFFFF !important; /* White text for high contrast */
+  .gift-status-stolen_twice {
+    background-color: #F44336 !important;
+    color: #FFFFFF !important;
+    animation: flash-alert 1s ease-in-out infinite !important;
   }
   
   .gift-status-locked {
-    background-color: #424242 !important; /* Darker grey for better contrast */
-    color: #FFFFFF !important; /* White text remains */
+    background-color: #9E9E9E !important;
+    color: #FFFFFF !important;
   }
 }
 
@@ -662,18 +759,23 @@
   
   /* Adjust gift status colors for dark mode */
   .gift-status-fresh {
-    background-color: #388E3C !important; /* Slightly darker green for dark mode */
+    background-color: #4CAF50 !important;
+    color: #FFFFFF !important;
   }
   
-  .gift-status-stolen-once {
-    background-color: #FBC02D !important; /* Slightly darker yellow for dark mode */
+  .gift-status-stolen_once {
+    background-color: #FFEB3B !important;
+    color: #424242 !important;
   }
   
-  .gift-status-stolen-twice {
-    background-color: #D32F2F !important; /* Slightly darker red for dark mode */
+  .gift-status-stolen_twice {
+    background-color: #F44336 !important;
+    color: #FFFFFF !important;
+    animation: flash-alert 1s ease-in-out infinite !important;
   }
   
   .gift-status-locked {
-    background-color: #616161 !important; /* Lighter grey for dark mode */
+    background-color: #9E9E9E !important;
+    color: #FFFFFF !important;
   }
 }

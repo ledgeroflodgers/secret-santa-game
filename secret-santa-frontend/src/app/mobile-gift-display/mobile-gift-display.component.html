@@ -93,10 +93,8 @@
        [attr.aria-label]="'Gift display showing ' + gifts.length + ' gifts'">
     <div *ngFor="let gift of gifts; trackBy: trackByGiftId" 
          class="gift-item"
-         [class]="'gift-item ' + getGiftStatusClass(gift)"
+         [ngClass]="[getGiftStatusClass(gift), isExploding(gift) ? 'exploding' : '']"
          [style.font-size]="getResponsiveFontSize()"
-         [style.background-color]="getGiftBackgroundColor(gift)"
-         [style.color]="getGiftTextColor(gift)"
          [attr.aria-label]="'Gift: ' + gift.name + ', ' + getGiftStatusDescription(gift)"
          role="listitem">
       {{ gift.name }}

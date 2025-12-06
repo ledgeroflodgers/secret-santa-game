@@ -15,6 +15,9 @@ export class MobileGiftDisplayComponent implements OnInit, OnDestroy {
   loading: boolean = true;
   error: string | null = null;
   
+  // Track gifts being removed for explosion animation
+  explodingGiftIds: Set<string> = new Set();
+  
   // Real-time update properties
   private refreshInterval: any;
   private readonly REFRESH_INTERVAL_MS = 2000; // 2 seconds as per requirements
@@ -116,7 +119,46 @@ export class MobileGiftDisplayComponent implements OnInit, OnDestroy {
 
     this.giftSubscription = this.giftService.getGifts().subscribe({
       next: (response) => {
-        const newGifts = response.gifts || [];
+        const allGifts = response.gifts || [];
+        // Find gifts that just got locked (stolen 3+ times)
+        const lockedGifts = allGifts.filter(gift => gift.steal_count >= 3 || gift.is_locked);
+        const currentGiftIds = new Set(this.gifts.map(g => g.id));
+        
+        // Detect newly locked gifts that were previously visible
+        const newlyLockedGifts = lockedGifts.filter(gift => currentGiftIds.has(gift.id) && !this.explodingGiftIds.has(gift.id));
+        
+        // Trigger explosion animation for newly locked gifts
+        if (newlyLockedGifts.length > 0) {
+          newlyLockedGifts.forEach(gift => {
+            this.explodingGiftIds.add(gift.id);
+          });
+          
+          // Set loading to false immediately
+          this.loading = false;
+          this.error = null;
+          this.retryCount = 0;
+          this.isRetrying = false;
+          this.lastSuccessfulUpdate = new Date();
+          this.errorHandlingService.resetRetryAttempts('mobile-gift-display');
+          this.cdr.markForCheck();
+          
+          // Remove exploding gifts after animation completes (600ms)
+          setTimeout(() => {
+            newlyLockedGifts.forEach(gift => {
+              this.explodingGiftIds.delete(gift.id);
+            });
+            // Now filter and update the gifts list
+            const visibleGifts = allGifts.filter(gift => gift.steal_count < 3 && !gift.is_locked);
+            this.gifts = visibleGifts;
+            this.lastGiftsHash = this.generateGiftsHash(visibleGifts);
+            this.calculateGridLayout();
+            this.cdr.markForCheck();
+          }, 600);
+          return;
+        }
+        
+        // Filter out locked gifts (stolen 3+ times) - they disappear from display
+        const newGifts = allGifts.filter(gift => gift.steal_count < 3 && !gift.is_locked);
         
         // Check if gifts have actually changed to minimize unnecessary updates
         if (this.hasGiftsChanged(newGifts)) {
@@ -476,9 +518,9 @@ export class MobileGiftDisplayComponent implements OnInit, OnDestroy {
    * Color status constants for gift status indication
    */
   private readonly GIFT_STATUS_COLORS = {
-    fresh: { background: '#4CAF50', color: '#424242' },      // Green bg, dark grey text
+    fresh: { background: '#4CAF50', color: '#FFFFFF' },      // Green bg, white text
     stolen_once: { background: '#FFEB3B', color: '#424242' }, // Yellow bg, dark grey text
-    stolen_twice: { background: '#F44336', color: '#424242' }, // Red bg, dark grey text
+    stolen_twice: { background: '#F44336', color: '#FFFFFF' }, // Red bg, white text
     locked: { background: '#9E9E9E', color: '#FFFFFF' }       // Grey bg, white text
   } as const;
 
@@ -688,5 +730,12 @@ export class MobileGiftDisplayComponent implements OnInit, OnDestroy {
    */
   public trackByGiftId(index: number, gift: Gift): string {
     return gift.id;
+  }
+
+  /**
+   * Check if a gift is currently exploding (being removed)
+   */
+  public isExploding(gift: Gift): boolean {
+    return this.explodingGiftIds.has(gift.id);
   }
 }
