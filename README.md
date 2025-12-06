@@ -1,7 +1,7 @@
 # Usage
 
-- Admin pass: fx
-- Reset pass: saeed
+- Admin pass: fx :: private readonly ADMIN_PASSWORD = 'fx'
+- Reset pass: saeed ::   private readonly NUCLEAR_PASSWORD = 'saeed'
 - http://secret-santa-frontend-dev-605868565364.s3-website-us-east-1.amazonaws.com
 
 # Secret Santa Game
